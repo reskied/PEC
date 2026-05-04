@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Electric Utility Lookup — PEC</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --fiord: #3E4E61;
+  --green: #A0C93A;
+  --ink: #1A1A1A;
+  --div: #E5E5E5;
+  --white: #FFFFFF;
+  --fiord-light: #eef1f4;
+  --green-light: #f4f9e8;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, Helvetica, sans-serif; background: #f2f4f6; color: var(--ink); font-size: 13px; }
+.site-header { background: var(--fiord); }
+.header-bar { display: flex; align-items: stretch; max-width: 1100px; margin: 0 auto; }
+.header-brand { display: flex; align-items: center; gap: 14px; padding: 14px 24px; flex: 1; }
+.header-logo { width: 36px; height: 36px; background: var(--green); border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.header-title { font-family: 'Montserrat', Arial, sans-serif; font-size: 15px; font-weight: 700; color: var(--white); letter-spacing: 0.3px; line-height: 1.2; }
+.header-sub { font-size: 10px; color: rgba(255,255,255,0.6); margin-top: 1px; }
+.header-accent { width: 8px; background: var(--green); flex-shrink: 0; }
+.sig-bar { height: 4px; background: linear-gradient(to right, var(--fiord) 60%, var(--green) 40%); }
+.page { max-width: 1100px; margin: 0 auto; padding: 24px 24px 48px; }
+.panel { background: var(--white); border: 1px solid var(--div); border-radius: 8px; overflow: hidden; margin-bottom: 20px; }
+.panel-header { background: var(--fiord); padding: 10px 16px; display: flex; align-items: center; gap: 10px; }
+.panel-header-title { font-family: 'Montserrat', Arial, sans-serif; font-size: 12px; font-weight: 700; color: var(--white); text-transform: uppercase; letter-spacing: 0.5px; }
+.panel-header-pill { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; background: rgba(160,201,58,0.25); color: var(--green); border: 1px solid rgba(160,201,58,0.4); }
+.panel-body { padding: 16px; }
+.search-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.search-row input { flex: 1; padding: 7px 10px; border: 1px solid var(--div); border-radius: 5px; font-size: 13px; font-family: Arial, sans-serif; background: var(--white); color: var(--ink); outline: none; }
+.search-row input:focus { outline: 2px solid var(--green); border-color: var(--green); }
+.search-row input::placeholder { color: #aaa; }
+.btn-green { padding: 7px 20px; background: var(--green); color: var(--white); border: 1px solid var(--green); border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 700; font-family: Arial, sans-serif; white-space: nowrap; }
+.btn-green:hover { background: #8aab2e; }
+.btn-green:disabled { opacity: 0.4; cursor: not-allowed; }
+.examples-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.section-label { font-size: 10px; color: var(--fiord); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.chip { font-size: 11px; padding: 3px 10px; border: 1px solid var(--div); border-radius: 10px; background: var(--fiord-light); color: var(--fiord); cursor: pointer; font-weight: 600; }
+.chip:hover { background: var(--green-light); border-color: var(--green); color: #3a6b0a; }
+.status-row { display: none; align-items: center; gap: 8px; padding: 8px 0; font-size: 12px; color: var(--fiord); }
+.status-row.visible { display: flex; }
+.spinner { display: inline-block; width: 13px; height: 13px; border: 2px solid var(--div); border-top-color: var(--fiord); border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.error-strip { display: none; background: #f8d7da; border: 1px solid #f1b0b7; border-radius: 6px; padding: 8px 14px; font-size: 12px; color: #721c24; margin-bottom: 12px; font-weight: 600; }
+.error-strip.visible { display: block; }
+.results-wrap { background: var(--white); border: 1px solid var(--div); border-radius: 8px; overflow: hidden; margin-bottom: 16px; }
+.results-header { display: flex; align-items: center; gap: 10px; padding: 11px 16px; background: var(--fiord); flex-wrap: wrap; }
+.results-title { font-family: 'Montserrat', Arial, sans-serif; font-size: 13px; font-weight: 700; color: var(--white); text-transform: uppercase; letter-spacing: 0.3px; flex: 1; }
+.badge { display: inline-block; padding: 2px 7px; border-radius: 3px; font-size: 10px; font-weight: 700; }
+.badge-nrel { background: rgba(160,201,58,0.25); color: var(--green); border: 1px solid rgba(160,201,58,0.4); }
+.stat-row { display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--div); }
+.stat-cell { flex: 1; min-width: 120px; padding: 12px 16px; border-right: 1px solid var(--div); }
+.stat-cell:last-child { border-right: none; }
+.stat-label { font-size: 10px; color: #888; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 3px; }
+.stat-value { font-size: 14px; font-weight: 700; font-family: 'Montserrat', Arial, sans-serif; color: var(--fiord); }
+.stat-value.normal { font-family: Arial; font-size: 12px; font-weight: 400; }
+.stat-value.mono { font-family: monospace; font-size: 11px; font-weight: 400; }
+.section-block { border-bottom: 1px solid var(--div); padding: 12px 16px; }
+.section-block:last-child { border-bottom: none; }
+.section-block-title { font-size: 10px; color: var(--fiord); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.section-block-title::after { content: ''; flex: 1; height: 1px; background: var(--div); }
+.rate-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.rate-card { background: var(--fiord-light); border-radius: 6px; padding: 10px 14px; border-left: 3px solid var(--fiord); }
+.rate-card.commercial { border-left-color: var(--green); background: var(--green-light); }
+.rate-label { font-size: 10px; color: var(--fiord); font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px; }
+.rate-value { font-family: 'Montserrat', Arial, sans-serif; font-size: 20px; font-weight: 700; color: var(--fiord); }
+.rate-value.commercial { color: #3a6b0a; }
+.rate-unit { font-size: 10px; color: #888; margin-top: 2px; }
+.lighting-card { background: var(--green-light); border: 1px solid #c5e08a; border-radius: 6px; padding: 12px 14px; }
+.lighting-name { font-family: 'Montserrat', Arial, sans-serif; font-size: 13px; font-weight: 700; color: #2a5a0a; margin-bottom: 6px; }
+.lighting-meta { font-size: 12px; color: #3a6b0a; line-height: 1.8; }
+.lighting-meta a { color: #2a5a0a; font-weight: 700; }
+.multi-card { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; font-size: 12px; color: #5d4037; line-height: 1.6; }
+.history-wrap { background: var(--white); border: 1px solid var(--div); border-radius: 8px; overflow: hidden; margin-bottom: 16px; }
+.history-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.history-table th { background: var(--fiord-light); padding: 7px 12px; text-align: left; font-weight: 700; font-size: 10px; color: var(--fiord); border-bottom: 1px solid var(--div); text-transform: uppercase; letter-spacing: 0.3px; }
+.history-table td { padding: 7px 12px; border-bottom: 1px solid #f5f5f5; }
+.history-table tr:last-child td { border-bottom: none; }
+.history-table tr:hover td { background: var(--fiord-light); cursor: pointer; }
+.disclaimer { font-size: 11px; color: #888; line-height: 1.6; margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--div); }
+</style>
+</head>
+<body>
+<div class="site-header">
+  <div class="header-bar">
+    <div class="header-brand">
+      <div class="header-logo">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="white" stroke="white" stroke-width="0.5" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div>
+        <div class="header-title">Electric Utility Lookup</div>
+        <div class="header-sub">Identify the serving utility &amp; commercial lighting incentive program for any US address — powered by NREL</div>
+      </div>
+    </div>
+    <div class="header-accent"></div>
+  </div>
+</div>
+<div class="sig-bar"></div>
+<div class="page">
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-header-title">Address Lookup</span>
+      <span class="panel-header-pill">Census Geocoder + NREL Utility Rates API</span>
+    </div>
+    <div class="panel-body">
+      <div class="search-row">
+        <input type="text" id="addr" placeholder="Enter a US address (e.g. 2878 NE Hidden Brook Pl, Bend, OR 97701)" autocomplete="off" />
+        <button class="btn-green" id="searchBtn" onclick="doSearch()">Look Up ↗</button>
+      </div>
+      <div class="examples-row">
+        <span class="section-label">Examples:</span>
+        <span class="chip" onclick="fill('2878 NE Hidden Brook Pl, Bend, OR 97701')">Bend, OR</span>
+        <span class="chip" onclick="fill('2001 Ross Ave, Dallas, TX 75201')">Dallas, TX</span>
+        <span class="chip" onclick="fill('1 Infinite Loop, Cupertino, CA 95014')">Cupertino, CA</span>
+        <span class="chip" onclick="fill('500 S Bronough St, Tallahassee, FL 32301')">Tallahassee, FL</span>
+        <span class="chip" onclick="fill('4000 Colfax Ave, Denver, CO 80216')">Denver, CO</span>
+        <span class="chip" onclick="fill('100 Main St, Starkville, MS 39759')">Starkville, MS</span>
+      </div>
+    </div>
+  </div>
+  <div class="status-row" id="status"><div class="spinner"></div><span id="statusText">Looking up...</span></div>
+  <div class="error-strip" id="error"></div>
+  <div id="result"></div>
+  <div class="history-wrap" id="historySection" style="display:none">
+    <div class="panel-header"><span class="panel-header-title">Recent Lookups</span></div>
+    <table class="history-table">
+      <thead><tr><th>Address</th><th>Utility</th><th>EIA ID</th><th>Commercial Rate</th></tr></thead>
+      <tbody id="historyBody"></tbody>
+    </table>
+  </div>
+  <p class="disclaimer">Geocoding via US Census Bureau. Utility and rate data from NREL Utility Rates API v3 (Ventyx/EIA 2012 data). Rate figures are historical averages for planning reference only. Lighting incentive program details should be verified with the program administrator. Must be served from a web server (not opened directly as a file) for API calls to function.</p>
+</div>
+<script>
+const NREL_KEY = 'MIt3Mi8MdZ8kZkdsbXBYTNece4Qxm4hDmkhFr7YE';
+const HISTORY_STORE = 'eu_lookup_history_nrel2';
+let lookupHistory = JSON.parse(localStorage.getItem(HISTORY_STORE) || '[]');
+
+document.getElementById('addr').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+function fill(a) { document.getElementById('addr').value = a; document.getElementById('addr').focus(); }
+function setStatus(m) { document.getElementById('statusText').textContent = m; document.getElementById('status').classList.add('visible'); }
+function clearStatus() { document.getElementById('status').classList.remove('visible'); }
+function setError(m) { const e = document.getElementById('error'); e.textContent = m; e.classList.add('visible'); }
+function clearError() { document.getElementById('error').classList.remove('visible'); }
+
+async function proxiedFetch(url) {
+  const proxies = [
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
+    'https://corsproxy.io/?url=' + encodeURIComponent(url),
+    'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url)
+  ];
+  let lastErr;
+  for (const proxy of proxies) {
+    try {
+      const res = await fetch(proxy, { signal: AbortSignal.timeout(8000) });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const text = await res.text();
+      return JSON.parse(text);
+    } catch(e) {
+      lastErr = e;
+    }
+  }
+  throw new Error('All proxies failed: ' + lastErr.message);
+}
+
+async function geocode(address) {
+  const url = `https://geocoding.geo.census.gov/geocoder/locations/onelineaddress?address=${encodeURIComponent(address)}&benchmark=Public_AR_Current&format=json`;
+  const data = await proxiedFetch(url);
+  const matches = data.result && data.result.addressMatches;
+  if (!matches || !matches.length) return null;
+  return { lat: parseFloat(matches[0].coordinates.y), lon: parseFloat(matches[0].coordinates.x), matchedAddress: matches[0].matchedAddress };
+}
+
+async function queryNREL(lat, lon) {
+  const url = `https://developer.nlr.gov/api/utility_rates/v3.json?api_key=${NREL_KEY}&lat=${lat}&lon=${lon}`;
+  return await proxiedFetch(url);
+}
+
+function getLightingProgram(utilityName, state) {
+  const u = (utilityName || '').toLowerCase(), s = (state || '').toUpperCase();
+  if ((u.includes('pacific power') || u.includes('pacificorp')) && s === 'OR')
+    return { name: 'Energy Trust of Oregon — Existing Buildings Lighting', administrator: 'Energy Trust of Oregon', website: 'https://www.energytrust.org/existing-buildings', phone: '1-866-368-7878', summary: 'Prescriptive and custom incentives for LED lighting retrofits, controls, and occupancy sensors in existing commercial and industrial buildings.' };
+  if (u.includes('pacific power') || u.includes('pacificorp'))
+    return { name: 'Pacific Power Energy Efficiency — Commercial Lighting', administrator: 'Pacific Power / PacifiCorp', website: 'https://www.pacificpower.net/savings-energy-choices/business/lighting.html', phone: '1-888-221-7070', summary: 'Prescriptive rebates for LED lighting upgrades and controls in commercial facilities. Program details vary by state.' };
+  if ((u.includes('portland general') || u.includes('pge')) && s === 'OR')
+    return { name: 'Energy Trust of Oregon — Existing Buildings Lighting', administrator: 'Energy Trust of Oregon', website: 'https://www.energytrust.org/existing-buildings', phone: '1-866-368-7878', summary: 'Prescriptive and custom incentives for LED lighting retrofits, controls, and occupancy sensors in existing commercial and industrial buildings.' };
+  if (u.includes('oncor'))
+    return { name: 'Oncor Commercial & Industrial Energy Efficiency Program', administrator: 'Oncor Electric Delivery', website: 'https://www.oncor.com/content/oncorwww/us/en/business/save-energy/commercial.html', phone: '1-888-313-6862', summary: 'Prescriptive rebates for LED lighting retrofits and controls through the Standard Offer Program. Work with an approved Trade Ally contractor to apply.' };
+  if ((u.includes('pacific gas') || u.includes('pg&e')) && s === 'CA')
+    return { name: 'PG&E Business Energy Efficiency Rebates — Lighting', administrator: 'Pacific Gas & Electric', website: 'https://www.pge.com/en/save-energy-and-money/energy-efficiency/business.html', phone: '1-800-468-4743', summary: 'Prescriptive rebates for LED lighting upgrades, controls, and exterior lighting in commercial buildings.' };
+  if (u.includes('southern california edison'))
+    return { name: 'SCE Business Solutions — Lighting Incentive Program', administrator: 'Southern California Edison', website: 'https://www.sce.com/business/rebates-and-incentives/lighting', phone: '1-800-736-4777', summary: 'Prescriptive and custom incentives for LED retrofits, controls, and lighting system upgrades in commercial and industrial facilities.' };
+  if (u.includes('xcel') || u.includes('public service co of colorado') || u.includes('northern states power'))
+    return { name: 'Xcel Energy Business Lighting Rebates', administrator: 'Xcel Energy', website: 'https://www.xcelenergy.com/programs_and_rebates/business_programs_and_rebates/lighting', phone: '1-800-895-4999', summary: 'Prescriptive rebates for LED lighting and controls upgrades in commercial buildings.' };
+  if (u.includes('duke'))
+    return { name: 'Duke Energy Smart $aver — Commercial Lighting', administrator: 'Duke Energy', website: 'https://www.duke-energy.com/business/products/smart-saver', phone: '1-800-777-9898', summary: 'Prescriptive rebates for LED lighting retrofits and controls in commercial and industrial facilities.' };
+  if (u.includes('florida power') || u.includes('fpl'))
+    return { name: 'FPL BusinessAdvantage — Lighting Program', administrator: 'Florida Power & Light', website: 'https://www.fpl.com/business/save/rebates.html', phone: '1-855-932-4770', summary: 'Prescriptive rebates for LED lighting and controls upgrades in commercial buildings.' };
+  if (u.includes('georgia power'))
+    return { name: 'Georgia Power C&I Energy Efficiency — Lighting', administrator: 'Georgia Power', website: 'https://www.georgiapower.com/business/save-money/rebates-incentives.html', phone: '1-888-660-5890', summary: 'Prescriptive rebates for LED lighting retrofits and controls in commercial and industrial facilities.' };
+  if (u.includes('puget sound') || u.includes('pse'))
+    return { name: 'PSE Business Lighting Rebates', administrator: 'Puget Sound Energy', website: 'https://www.pse.com/business/rebates-and-incentives/lighting', phone: '1-800-562-1482', summary: 'Prescriptive rebates for LED lighting and controls upgrades in commercial buildings.' };
+  if (u.includes('consumers energy'))
+    return { name: 'Consumers Energy Business Lighting Program', administrator: 'Consumers Energy', website: 'https://www.consumersenergy.com/business/products-and-services/energy-efficiency', phone: '1-877-607-0737', summary: 'Prescriptive rebates for LED lighting retrofits and controls in commercial and industrial buildings.' };
+  if (u.includes('dte') || u.includes('detroit edison'))
+    return { name: 'DTE Energy Business Efficiency Program — Lighting', administrator: 'DTE Energy', website: 'https://www.dteenergy.com/us/en/business/products-and-services/energy-efficiency.html', phone: '1-866-796-0512', summary: 'Prescriptive rebates for LED lighting and controls upgrades in commercial and industrial facilities.' };
+  return { name: 'Visit DSIRE for applicable incentive programs', administrator: utilityName || 'Your electric utility', website: 'https://www.dsireusa.org', phone: null, summary: 'Many utilities offer prescriptive rebates for LED retrofits and controls. Visit dsireusa.org to find all available programs in your state.' };
+}
+
+function formatRate(v) { if (v == null || v === 0) return '—'; return (parseFloat(v) * 100).toFixed(2) + '¢'; }
+function extractState(addr) { const m = addr.match(/,\s*([A-Z]{2})\s*(?:\d{5})?/i); return m ? m[1].toUpperCase() : ''; }
+
+function renderHistory() {
+  const sec = document.getElementById('historySection'), body = document.getElementById('historyBody');
+  if (!lookupHistory.length) { sec.style.display = 'none'; return; }
+  sec.style.display = 'block';
+  body.innerHTML = lookupHistory.slice(0, 8).map(h => `<tr onclick="fill('${h.addr.replace(/'/g,"\\'")}')"><td>${h.addr}</td><td style="font-weight:600;color:var(--fiord)">${h.utility}</td><td style="font-family:monospace">${h.eia_id || '—'}</td><td>${h.commercial || '—'}</td></tr>`).join('');
+}
+
+function saveToHistory(addr, utility, eia_id, commercial) {
+  lookupHistory = [{ addr, utility, eia_id, commercial }, ...lookupHistory.filter(h => h.addr !== addr)].slice(0, 20);
+  localStorage.setItem(HISTORY_STORE, JSON.stringify(lookupHistory));
+  renderHistory();
+}
+
+renderHistory();
+
+async function doSearch() {
+  const q = document.getElementById('addr').value.trim();
+  if (!q) { document.getElementById('addr').focus(); return; }
+  clearError();
+  document.getElementById('result').innerHTML = '';
+  document.getElementById('searchBtn').disabled = true;
+  try {
+    setStatus('Step 1 of 2 — Geocoding address via US Census Bureau...');
+    const geo = await geocode(q);
+    if (!geo) { clearStatus(); setError('Address not found. Include a full street address with city and state.'); document.getElementById('searchBtn').disabled = false; return; }
+    setStatus('Step 2 of 2 — Querying NREL Utility Rates API...');
+    const nrel = await queryNREL(geo.lat, geo.lon);
+    clearStatus();
+    if (nrel.errors && nrel.errors.length) { setError('NREL API error: ' + nrel.errors.join(', ')); document.getElementById('searchBtn').disabled = false; return; }
+    const out = nrel.outputs;
+    if (!out || !out.utility_name) { setError('No utility territory found for this location. Try adding a zip code.'); document.getElementById('searchBtn').disabled = false; return; }
+    const utilities = out.utility_info || [{ utility_name: out.utility_name, company_id: out.company_id }];
+    const primary = utilities[0];
+    const state = extractState(geo.matchedAddress);
+    const lp = getLightingProgram(primary.utility_name, state);
+    const commRate = formatRate(out.commercial), resRate = formatRate(out.residential), indRate = formatRate(out.industrial);
+    saveToHistory(q, primary.utility_name, primary.company_id, commRate);
+    const multiHtml = utilities.length > 1 ? `<div class="section-block"><div class="section-block-title">Multiple Utilities Found</div><div class="multi-card">⚡ <strong>${utilities.length} utilities</strong> serve this area: ${utilities.map(u => `<strong>${u.utility_name}</strong> (EIA #${u.company_id})`).join(' &nbsp;·&nbsp; ')}<br>Lighting program shown is for the primary utility above.</div></div>` : '';
+    document.getElementById('result').innerHTML = `
+      <div class="results-wrap">
+        <div class="results-header">
+          <span class="results-title">${primary.utility_name}</span>
+          <span class="badge badge-nrel">NREL Verified</span>
+        </div>
+        <div class="stat-row">
+          <div class="stat-cell"><div class="stat-label">Matched Address</div><div class="stat-value normal">${geo.matchedAddress}</div></div>
+          <div class="stat-cell"><div class="stat-label">EIA Company ID</div><div class="stat-value mono">${primary.company_id || '—'}</div></div>
+          <div class="stat-cell"><div class="stat-label">State</div><div class="stat-value">${state || '—'}</div></div>
+          <div class="stat-cell"><div class="stat-label">Coordinates</div><div class="stat-value mono">${geo.lat.toFixed(5)}, ${geo.lon.toFixed(5)}</div></div>
+        </div>
+        <div class="section-block">
+          <div class="section-block-title">Average Electricity Rates (¢ / kWh)</div>
+          <div class="rate-grid">
+            <div class="rate-card commercial"><div class="rate-label">Commercial</div><div class="rate-value commercial">${commRate}</div><div class="rate-unit">per kWh avg (2012)</div></div>
+            <div class="rate-card"><div class="rate-label">Residential</div><div class="rate-value">${resRate}</div><div class="rate-unit">per kWh avg (2012)</div></div>
+            <div class="rate-card"><div class="rate-label">Industrial</div><div class="rate-value">${indRate}</div><div class="rate-unit">per kWh avg (2012)</div></div>
+          </div>
+        </div>
+        ${multiHtml}
+        <div class="section-block">
+          <div class="section-block-title">Commercial Lighting Incentive Program</div>
+          <div class="lighting-card">
+            <div class="lighting-name">${lp.name}</div>
+            <div class="lighting-meta">
+              ${lp.administrator ? `<strong>Administrator:</strong> ${lp.administrator}<br>` : ''}
+              ${lp.website ? `<strong>Website:</strong> <a href="${lp.website}" target="_blank">${lp.website.replace(/^https?:\/\//, '')}</a><br>` : ''}
+              ${lp.phone ? `<strong>Phone:</strong> ${lp.phone}<br>` : ''}
+              ${lp.summary ? `<br>${lp.summary}` : ''}
+            </div>
+          </div>
+        </div>
+      </div>`;
+  } catch(err) {
+    clearStatus();
+    setError('Lookup failed: ' + err.message);
+    console.error(err);
+  }
+  document.getElementById('searchBtn').disabled = false;
+}
+</script>
+</body>
+</html>
