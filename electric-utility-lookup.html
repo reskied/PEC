@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Electric Utility Lookup — PEC</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --fiord: #3E4E61;
+  --green: #A0C93A;
+  --ink: #1A1A1A;
+  --div: #E5E5E5;
+  --white: #FFFFFF;
+  --fiord-light: #eef1f4;
+  --green-light: #f4f9e8;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, Helvetica, sans-serif; background: #f2f4f6; color: var(--ink); font-size: 13px; }
+.site-header { background: var(--fiord); }
+.header-bar { display: flex; align-items: stretch; max-width: 1100px; margin: 0 auto; }
+.header-brand { display: flex; align-items: center; gap: 14px; padding: 14px 24px; flex: 1; }
+.header-logo { width: 36px; height: 36px; background: var(--green); border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.header-title { font-family: 'Montserrat', Arial, sans-serif; font-size: 15px; font-weight: 700; color: var(--white); letter-spacing: 0.3px; line-height: 1.2; }
+.header-sub { font-size: 10px; color: rgba(255,255,255,0.6); margin-top: 1px; }
+.header-accent { width: 8px; background: var(--green); flex-shrink: 0; }
+.sig-bar { height: 3px; background: var(--fiord); border-top: 1px solid rgba(0,0,0,0.2); }
+.page { max-width: 1100px; margin: 0 auto; padding: 24px 24px 48px; }
+.panel { background: var(--white); border: 1px solid var(--div); border-radius: 8px; overflow: hidden; margin-bottom: 20px; }
+.panel-header { background: var(--fiord); padding: 10px 16px; display: flex; align-items: center; gap: 10px; }
+.panel-header-title { font-family: 'Montserrat', Arial, sans-serif; font-size: 12px; font-weight: 700; color: var(--white); text-transform: uppercase; letter-spacing: 0.5px; }
+.panel-header-pill { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; background: rgba(160,201,58,0.25); color: var(--green); border: 1px solid rgba(160,201,58,0.4); }
+.panel-body { padding: 16px; }
+.search-row { display: flex; gap: 8px; }
+.search-row input { flex: 1; padding: 7px 10px; border: 1px solid var(--div); border-radius: 5px; font-size: 13px; font-family: Arial, sans-serif; background: var(--white); color: var(--ink); outline: none; }
+.search-row input:focus { outline: 2px solid var(--green); border-color: var(--green); }
+.search-row input::placeholder { color: #aaa; }
+.btn-green { padding: 7px 20px; background: var(--green); color: var(--white); border: 1px solid var(--green); border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 700; font-family: Arial, sans-serif; white-space: nowrap; }
+.btn-green:hover { background: #8aab2e; }
+.btn-green:disabled { opacity: 0.4; cursor: not-allowed; }
+.status-row { display: none; align-items: center; gap: 8px; padding: 8px 0; font-size: 12px; color: var(--fiord); }
+.status-row.visible { display: flex; }
+.spinner { display: inline-block; width: 13px; height: 13px; border: 2px solid var(--div); border-top-color: var(--fiord); border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.error-strip { display: none; background: #f8d7da; border: 1px solid #f1b0b7; border-radius: 6px; padding: 8px 14px; font-size: 12px; color: #721c24; margin-bottom: 12px; font-weight: 600; line-height: 1.5; }
+.error-strip.visible { display: block; }
+.results-wrap { background: var(--white); border: 1px solid var(--div); border-radius: 8px; overflow: hidden; margin-bottom: 16px; }
+.results-header { display: flex; align-items: center; gap: 10px; padding: 11px 16px; background: var(--fiord); flex-wrap: wrap; }
+.results-title { font-family: 'Montserrat', Arial, sans-serif; font-size: 13px; font-weight: 700; color: var(--white); text-transform: uppercase; letter-spacing: 0.3px; flex: 1; }
+.badge { display: inline-block; padding: 2px 7px; border-radius: 3px; font-size: 10px; font-weight: 700; }
+.badge-nrel { background: rgba(160,201,58,0.25); color: var(--green); border: 1px solid rgba(160,201,58,0.4); }
+.stat-row { display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--div); }
+.stat-cell { flex: 1; min-width: 120px; padding: 12px 16px; border-right: 1px solid var(--div); }
+.stat-cell:last-child { border-right: none; }
+.stat-label { font-size: 10px; color: #888; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 3px; }
+.stat-value { font-size: 14px; font-weight: 700; font-family: 'Montserrat', Arial, sans-serif; color: var(--fiord); }
+.stat-value.normal { font-family: Arial; font-size: 12px; font-weight: 400; }
+.stat-value.mono { font-family: monospace; font-size: 11px; font-weight: 400; }
+.section-block { border-bottom: 1px solid var(--div); padding: 12px 16px; }
+.section-block:last-child { border-bottom: none; }
+.section-block-title { font-size: 10px; color: var(--fiord); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.section-block-title::after { content: ''; flex: 1; height: 1px; background: var(--div); }
+.rate-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.rate-card { background: var(--fiord-light); border-radius: 6px; padding: 10px 14px; border-left: 3px solid var(--fiord); }
+.rate-card.commercial { border-left-color: var(--green); background: var(--green-light); }
+.rate-label { font-size: 10px; color: var(--fiord); font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px; }
+.rate-value { font-family: 'Montserrat', Arial, sans-serif; font-size: 20px; font-weight: 700; color: var(--fiord); }
+.rate-value.commercial { color: #3a6b0a; }
+.rate-unit { font-size: 10px; color: #888; margin-top: 2px; }
+.program-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media(max-width: 600px) { .program-grid { grid-template-columns: 1fr; } }
+.program-card { border: 1px solid #c5e08a; border-radius: 6px; padding: 12px 14px; }
+.program-card.lighting { background: var(--green-light); }
+.program-card.ev { background: #f0f4ff; border-color: #b8c8e8; }
+.program-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; }
+.program-title.lighting { color: #3a6b0a; }
+.program-title.ev { color: #1a3a6b; }
+.program-name { font-family: 'Montserrat', Arial, sans-serif; font-size: 12px; font-weight: 700; margin-bottom: 6px; }
+.program-name.lighting { color: #2a5a0a; }
+.program-name.ev { color: #1a3a6b; }
+.program-meta { font-size: 12px; line-height: 1.8; }
+.program-meta.lighting { color: #3a6b0a; }
+.program-meta.ev { color: #1a3a6b; }
+.program-meta a { font-weight: 700; }
+.program-meta.lighting a { color: #2a5a0a; }
+.program-meta.ev a { color: #1a3a6b; }
+.multi-card { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; font-size: 12px; color: #5d4037; line-height: 1.6; }
+.history-wrap { background: var(--white); border: 1px solid var(--div); border-radius: 8px; overflow: hidden; margin-bottom: 16px; }
+.history-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.history-table th { background: var(--fiord-light); padding: 7px 12px; text-align: left; font-weight: 700; font-size: 10px; color: var(--fiord); border-bottom: 1px solid var(--div); text-transform: uppercase; letter-spacing: 0.3px; }
+.history-table td { padding: 7px 12px; border-bottom: 1px solid #f5f5f5; }
+.history-table tr:last-child td { border-bottom: none; }
+.history-table tr:hover td { background: var(--fiord-light); cursor: pointer; }
+.disclaimer { font-size: 11px; color: #888; line-height: 1.6; margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--div); }
+.home-btn {
+  display:flex;align-items:center;gap:7px;
+  padding:8px 16px;margin-right:16px;
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.18);
+  border-radius:5px;
+  color:rgba(255,255,255,0.75);
+  text-decoration:none;
+  font-family:'Montserrat',Arial,sans-serif;
+  font-size:11px;font-weight:700;
+  letter-spacing:0.5px;text-transform:uppercase;
+  transition:background .15s,color .15s;
+}
+.home-btn:hover{background:rgba(255,255,255,0.15);color:#fff;}
+</style>
+</head>
+<body>
+<div class="site-header">
+  <div class="header-bar">
+    <div class="header-brand">
+      <div class="header-logo">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="white" stroke="white" stroke-width="0.5" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div>
+        <div class="header-title">Electric Utility Lookup</div>
+        <div class="header-sub">Identify the serving utility &amp; incentive programs for any US address — powered by NREL</div>
+      </div>
+    </div>
+      <a href="index.html" class="home-btn" title="Home">
+        <svg viewBox="0 0 24 24" fill="none" width="16" height="16" stroke="rgba(255,255,255,0.7)" stroke-width="2.5">
+          <path d="M19 12H5M12 5l-7 7 7 7"/>
+        </svg>
+        <span>Home</span>
+      </a>
+  </div>
+</div>
+<div class="sig-bar"></div>
+<div class="page">
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-header-title">Address Lookup</span>
+      <span class="panel-header-pill">Census Geocoder + NREL Utility Rates API</span>
+    </div>
+    <div class="panel-body">
+      <div class="search-row">
+        <input type="text" id="addr" placeholder="e.g. 210 W 3rd St, Vancouver, WA 98660" autocomplete="off" />
+        <button class="btn-green" id="searchBtn" onclick="doSearch()">Look Up ↗</button>
+      </div>
+    </div>
+  </div>
+  <div class="status-row" id="status"><div class="spinner"></div><span id="statusText">Looking up...</span></div>
+  <div class="error-strip" id="error"></div>
+  <div id="result"></div>
+  <div class="history-wrap" id="historySection" style="display:none">
+    <div class="panel-header"><span class="panel-header-title">Recent Lookups</span></div>
+    <table class="history-table">
+      <thead><tr><th>Address</th><th>Utility</th><th>State</th><th>Commercial Rate</th></tr></thead>
+      <tbody id="historyBody"></tbody>
+    </table>
+  </div>
+  <p class="disclaimer">Geocoding via US Census Bureau. Utility identification from NREL Utility Rates API v3 (EIA data). Commercial electricity rates from EIA 2024 state averages. Incentive program information sourced from known utility programs and UtilityGenius — verify details with the program administrator before quoting. Service territory boundaries are approximate.</p>
+</div>
+
+<script>
+const NREL_KEY = 'MIt3Mi8MdZ8kZkdsbXBYTNece4Qxm4hDmkhFr7YE';
+const HISTORY_STORE = 'eu_lookup_history_v4';
+let lookupHistory = JSON.parse(localStorage.getItem(HISTORY_STORE) || '[]');
+
+document.getElementById('addr').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+function setStatus(m) { document.getElementById('statusText').textContent = m; document.getElementById('status').classList.add('visible'); }
+function clearStatus() { document.getElementById('status').classList.remove('visible'); }
+function setError(m) { const e = document.getElementById('error'); e.innerHTML = m; e.classList.add('visible'); }
+function clearError() { document.getElementById('error').classList.remove('visible'); }
+
+// EIA 2024 commercial electricity rates by state (¢/kWh)
+const EIA_2024_COMMERCIAL = {
+  AL:11.6, AK:18.2, AZ:10.8, AR:8.9, CA:22.6, CO:10.5, CT:20.1, DE:12.4,
+  DC:13.8, FL:10.9, GA:10.2, HI:38.4, ID:8.1, IL:10.3, IN:9.4, IA:9.2,
+  KS:10.1, KY:8.7, LA:8.2, ME:16.8, MD:13.2, MA:19.8, MI:11.4, MN:10.6,
+  MS:9.8, MO:9.3, MT:10.2, NE:9.8, NV:10.4, NH:17.9, NJ:14.6, NM:10.8,
+  NY:16.8, NC:9.4, ND:9.1, OH:10.2, OK:8.6, OR:9.8, PA:11.8, RI:18.2,
+  SC:9.6, SD:10.4, TN:9.8, TX:9.1, UT:9.2, VT:15.8, VA:10.4, WA:8.4,
+  WV:9.2, WI:11.2, WY:8.8
+};
+
+async function proxiedFetch(url) {
+  const proxies = [
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
+    'https://corsproxy.io/?url=' + encodeURIComponent(url),
+    'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url)
+  ];
+  let lastErr;
+  for (const proxy of proxies) {
+    try {
+      const res = await fetch(proxy, { signal: AbortSignal.timeout(8000) });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return JSON.parse(await res.text());
+    } catch(e) { lastErr = e; }
+  }
+  throw new Error('All proxies failed: ' + lastErr.message);
+}
+
+async function geocode(address) {
+  const url = `https://geocoding.geo.census.gov/geocoder/locations/onelineaddress?address=${encodeURIComponent(address)}&benchmark=Public_AR_Current&format=json`;
+  const data = await proxiedFetch(url);
+  const matches = data.result && data.result.addressMatches;
+  if (!matches || !matches.length) return null;
+  const m = matches[0];
+  // Use addressComponents for reliable state extraction
+  const state = (m.addressComponents && m.addressComponents.state) || '';
+  return {
+    lat: parseFloat(m.coordinates.y),
+    lon: parseFloat(m.coordinates.x),
+    matchedAddress: m.matchedAddress,
+    state: state.toUpperCase()
+  };
+}
+
+async function queryNREL(lat, lon) {
+  const url = `https://developer.nlr.gov/api/utility_rates/v3.json?api_key=${NREL_KEY}&lat=${lat}&lon=${lon}`;
+  return await proxiedFetch(url);
+}
+
+function getPrograms(utilityName, state) {
+  const u = (utilityName || '').toLowerCase();
+  const s = (state || '').toUpperCase();
+
+  // Build UtilityGenius search URL as fallback
+  const ugUrl = `https://app.utilitygenius.com/`;
+
+  // Pacific Power Oregon
+  if ((u.includes('pacific power') || u.includes('pacificorp')) && s === 'OR') return {
+    lighting: { name: 'Energy Trust of Oregon — Existing Buildings Lighting', admin: 'Energy Trust of Oregon', website: 'https://www.energytrust.org/existing-buildings', phone: '1-866-368-7878', summary: 'Prescriptive and custom incentives for LED lighting retrofits, controls, and occupancy sensors in existing commercial buildings.' },
+    ev: { name: 'Energy Trust of Oregon — Transportation Electrification', admin: 'Energy Trust of Oregon', website: 'https://www.energytrust.org/transportation', phone: '1-866-368-7878', summary: 'Incentives for commercial EV charging infrastructure including Level 2 and DC fast chargers for fleets and workplaces.' }
+  };
+  // Pacific Power other states
+  if (u.includes('pacific power') || u.includes('pacificorp')) return {
+    lighting: { name: 'Pacific Power Commercial Lighting Rebates', admin: 'Pacific Power / PacifiCorp', website: 'https://www.pacificpower.net/savings-energy-choices/business/lighting.html', phone: '1-888-221-7070', summary: 'Prescriptive rebates for LED lighting upgrades and controls in commercial facilities. Program details vary by state.' },
+    ev: { name: 'Pacific Power EV Charging Incentives', admin: 'Pacific Power / PacifiCorp', website: 'https://www.pacificpower.net/savings-energy-choices/electric-vehicles.html', phone: '1-888-221-7070', summary: 'Rebates for commercial and workplace EV charging station installation. Availability varies by state.' }
+  };
+  // Portland General Electric (OR)
+  if ((u.includes('portland general') || u.includes('pge')) && s === 'OR') return {
+    lighting: { name: 'Energy Trust of Oregon — Existing Buildings Lighting', admin: 'Energy Trust of Oregon', website: 'https://www.energytrust.org/existing-buildings', phone: '1-866-368-7878', summary: 'Prescriptive and custom incentives for LED lighting retrofits, controls, and occupancy sensors in existing commercial buildings.' },
+    ev: { name: 'PGE EV Charging Incentive Program', admin: 'Portland General Electric', website: 'https://portlandgeneral.com/energy-choices/ev-charging', phone: '1-800-542-8818', summary: 'Incentives for commercial workplace and fleet EV charging infrastructure.' }
+  };
+  // Oncor (TX)
+  if (u.includes('oncor')) return {
+    lighting: { name: 'Oncor Commercial & Industrial Energy Efficiency — Lighting', admin: 'Oncor Electric Delivery', website: 'https://www.oncor.com/content/oncorwww/us/en/business/save-energy/commercial.html', phone: '1-888-313-6862', summary: 'Prescriptive rebates for LED lighting retrofits and controls through the Standard Offer Program. Work with an approved Trade Ally contractor.' },
+    ev: { name: 'Oncor EV Charging Program', admin: 'Oncor Electric Delivery', website: 'https://www.oncor.com/content/oncorwww/us/en/business/save-energy/ev-charging.html', phone: '1-888-313-6862', summary: 'Rebates and incentives for commercial EV charging station deployment in Oncor\'s service territory.' }
+  };
+  // PG&E (CA)
+  if ((u.includes('pacific gas') || u.includes('pg&e')) && s === 'CA') return {
+    lighting: { name: 'PG&E Business Energy Efficiency — Lighting', admin: 'Pacific Gas & Electric', website: 'https://www.pge.com/en/save-energy-and-money/energy-efficiency/business.html', phone: '1-800-468-4743', summary: 'Prescriptive rebates for LED lighting upgrades, controls, and exterior lighting in commercial buildings.' },
+    ev: { name: 'PG&E EV Charge Network Program', admin: 'Pacific Gas & Electric', website: 'https://www.pge.com/en/clean-energy/electric-vehicles/ev-charge-network.html', phone: '1-800-468-4743', summary: 'Make-ready infrastructure support and rebates for commercial and fleet EV charging stations.' }
+  };
+  // SCE (CA)
+  if (u.includes('southern california edison')) return {
+    lighting: { name: 'SCE Business Solutions — Lighting', admin: 'Southern California Edison', website: 'https://www.sce.com/business/rebates-and-incentives/lighting', phone: '1-800-736-4777', summary: 'Prescriptive and custom incentives for LED retrofits and lighting controls in commercial and industrial facilities.' },
+    ev: { name: 'SCE Charge Ready Program', admin: 'Southern California Edison', website: 'https://www.sce.com/business/electric-vehicles/charge-ready', phone: '1-800-736-4777', summary: 'Infrastructure support for commercial EV charging including make-ready installation for workplace and fleet chargers.' }
+  };
+  // SDG&E (CA)
+  if (u.includes('san diego gas') || u.includes('sdg&e') || u.includes('sdge')) return {
+    lighting: { name: 'SDG&E Business Energy Efficiency — Lighting', admin: 'San Diego Gas & Electric', website: 'https://www.sdge.com/business/savings-center/energy-efficiency-rebates', phone: '1-800-411-7343', summary: 'Prescriptive rebates for LED lighting upgrades and controls in commercial buildings.' },
+    ev: { name: 'SDG&E Power Your Drive', admin: 'San Diego Gas & Electric', website: 'https://www.sdge.com/clean-energy/electric-vehicles/power-your-drive', phone: '1-800-411-7343', summary: 'Make-ready EV charging infrastructure support for multi-unit dwellings and commercial facilities.' }
+  };
+  // Xcel Energy
+  if (u.includes('xcel') || u.includes('public service co of colorado') || u.includes('northern states power')) return {
+    lighting: { name: 'Xcel Energy Business Lighting Rebates', admin: 'Xcel Energy', website: 'https://www.xcelenergy.com/programs_and_rebates/business_programs_and_rebates/lighting', phone: '1-800-895-4999', summary: 'Prescriptive rebates for LED lighting and controls upgrades in commercial buildings.' },
+    ev: { name: 'Xcel Energy EV Charging Rebates', admin: 'Xcel Energy', website: 'https://www.xcelenergy.com/programs_and_rebates/electric_vehicles', phone: '1-800-895-4999', summary: 'Rebates for Level 2 and DC fast charger installation for commercial, workplace, and fleet applications.' }
+  };
+  // Duke Energy
+  if (u.includes('duke')) return {
+    lighting: { name: 'Duke Energy Smart $aver — Commercial Lighting', admin: 'Duke Energy', website: 'https://www.duke-energy.com/business/products/smart-saver', phone: '1-800-777-9898', summary: 'Prescriptive rebates for LED lighting retrofits and controls in commercial and industrial facilities.' },
+    ev: { name: 'Duke Energy EV Charging Program', admin: 'Duke Energy', website: 'https://www.duke-energy.com/home/products/electric-vehicles', phone: '1-800-777-9898', summary: 'Rebates and make-ready support for commercial and workplace EV charging station deployment.' }
+  };
+  // Florida Power & Light
+  if (u.includes('florida power') || u.includes('fpl') || u.includes('florida light')) return {
+    lighting: { name: 'FPL BusinessAdvantage — Lighting', admin: 'Florida Power & Light', website: 'https://www.fpl.com/business/save/rebates.html', phone: '1-855-932-4770', summary: 'Prescriptive rebates for LED lighting and controls upgrades in commercial buildings.' },
+    ev: { name: 'FPL EV Charging Incentives', admin: 'Florida Power & Light', website: 'https://www.fpl.com/clean-energy/electric-vehicles.html', phone: '1-855-932-4770', summary: 'Incentives for commercial EV charging infrastructure for businesses and fleets.' }
+  };
+  // Georgia Power
+  if (u.includes('georgia power')) return {
+    lighting: { name: 'Georgia Power C&I Energy Efficiency — Lighting', admin: 'Georgia Power', website: 'https://www.georgiapower.com/business/save-money/rebates-incentives.html', phone: '1-888-660-5890', summary: 'Prescriptive rebates for LED lighting retrofits and controls in commercial facilities.' },
+    ev: { name: 'Georgia Power EV Charging Program', admin: 'Georgia Power', website: 'https://www.georgiapower.com/environment/electric-vehicles.html', phone: '1-888-660-5890', summary: 'Rebates and rate discounts for commercial and fleet EV charging station installation.' }
+  };
+  // PSE (WA)
+  if (u.includes('puget sound') || u.includes('pse')) return {
+    lighting: { name: 'PSE Business Lighting Rebates', admin: 'Puget Sound Energy', website: 'https://www.pse.com/business/rebates-and-incentives/lighting', phone: '1-800-562-1482', summary: 'Prescriptive rebates for LED lighting and controls upgrades in commercial buildings.' },
+    ev: { name: 'PSE Commercial EV Charging Rebates', admin: 'Puget Sound Energy', website: 'https://www.pse.com/business/rebates-and-incentives/electric-vehicles', phone: '1-800-562-1482', summary: 'Rebates for commercial Level 2 and DC fast charger installation for workplaces and fleets.' }
+  };
+  // PSE&G / Public Service Electric & Gas (NJ)
+  if (u.includes('public service electric') || u.includes('pseg')) return {
+    lighting: { name: 'PSE&G Commercial & Industrial Energy Efficiency — Lighting', admin: 'Public Service Electric & Gas', website: 'https://nj.pseg.com/business/savemoney/energyefficiency', phone: '1-800-510-3056', summary: 'Prescriptive rebates for LED lighting retrofits and controls in commercial and industrial buildings.' },
+    ev: { name: 'PSE&G EV Charging Incentive Program', admin: 'Public Service Electric & Gas', website: 'https://nj.pseg.com/home/cleanenergy/electricvehicles', phone: '1-800-510-3056', summary: 'Make-ready and charger rebates for commercial EV charging station deployment in NJ.' }
+  };
+  // JCP&L / Jersey Central Power & Light (NJ)
+  if (u.includes('jersey central') || u.includes('jcp&l') || u.includes('firstenergy')) return {
+    lighting: { name: 'JCP&L Commercial Energy Efficiency — Lighting', admin: 'Jersey Central Power & Light / FirstEnergy', website: 'https://www.jcpl.com/business/business-energy-efficiency', phone: '1-800-642-3780', summary: 'Prescriptive rebates for LED lighting retrofits and controls in commercial facilities.' },
+    ev: { name: 'JCP&L EV Charging Program', admin: 'Jersey Central Power & Light', website: 'https://www.jcpl.com/home/cleanenergy/electricvehicles', phone: '1-800-642-3780', summary: 'Rebates for commercial and workplace EV charging station installation.' }
+  };
+  // Consumers Energy (MI)
+  if (u.includes('consumers energy')) return {
+    lighting: { name: 'Consumers Energy Business Lighting Program', admin: 'Consumers Energy', website: 'https://www.consumersenergy.com/business/products-and-services/energy-efficiency', phone: '1-877-607-0737', summary: 'Prescriptive rebates for LED lighting retrofits and controls in commercial buildings.' },
+    ev: { name: 'Consumers Energy EV Charging Rebates', admin: 'Consumers Energy', website: 'https://www.consumersenergy.com/home/products-and-services/electric-vehicles', phone: '1-877-607-0737', summary: 'Rebates for commercial EV charger installation for workplaces and fleets.' }
+  };
+  // DTE (MI)
+  if (u.includes('dte') || u.includes('detroit edison')) return {
+    lighting: { name: 'DTE Energy Business Efficiency — Lighting', admin: 'DTE Energy', website: 'https://www.dteenergy.com/us/en/business/products-and-services/energy-efficiency.html', phone: '1-866-796-0512', summary: 'Prescriptive rebates for LED lighting and controls upgrades in commercial and industrial facilities.' },
+    ev: { name: 'DTE EV Charging Incentives', admin: 'DTE Energy', website: 'https://www.dteenergy.com/us/en/residential/electric-vehicles.html', phone: '1-866-796-0512', summary: 'Rebates for commercial EV charging station installation for workplaces and fleets.' }
+  };
+  // Commonwealth Edison / ComEd (IL)
+  if (u.includes('commonwealth edison') || u.includes('comed')) return {
+    lighting: { name: 'ComEd Energy Efficiency — Commercial Lighting', admin: 'Commonwealth Edison', website: 'https://www.comed.com/SmartEnergy/EnergyEfficiency/Pages/Business.aspx', phone: '1-855-433-2700', summary: 'Prescriptive rebates for LED lighting retrofits and controls in commercial buildings.' },
+    ev: { name: 'ComEd EV Charging Rebates', admin: 'Commonwealth Edison', website: 'https://www.comed.com/SmartEnergy/ElectricVehicles/Pages/Home.aspx', phone: '1-855-433-2700', summary: 'Rebates for commercial Level 2 and DC fast charger deployment for workplaces and fleets.' }
+  };
+  // Con Edison (NY)
+  if (u.includes('consolidated edison') || u.includes('con edison') || u.includes('coned')) return {
+    lighting: { name: 'Con Edison Commercial Efficient Equipment — Lighting', admin: 'Consolidated Edison', website: 'https://www.coned.com/en/save-money/rebates-incentives-tax-credits/rebates-incentives-tax-credits-for-business', phone: '1-800-752-6633', summary: 'Prescriptive rebates for LED lighting upgrades and controls in commercial facilities.' },
+    ev: { name: 'Con Edison EV Make-Ready Program', admin: 'Consolidated Edison', website: 'https://www.coned.com/en/our-energy-future/our-energy-stories/ev-make-ready', phone: '1-800-752-6633', summary: 'Make-ready infrastructure support for commercial EV charging station deployment in NYC and Westchester.' }
+  };
+  // National Grid (NY/MA/RI)
+  if (u.includes('national grid')) return {
+    lighting: { name: 'National Grid Commercial Energy Efficiency — Lighting', admin: 'National Grid', website: 'https://www.nationalgridus.com/BusinessRebates', phone: '1-800-642-4272', summary: 'Prescriptive rebates for LED lighting retrofits and controls in commercial and industrial buildings.' },
+    ev: { name: 'National Grid EV Charging Incentives', admin: 'National Grid', website: 'https://www.nationalgridus.com/CleanEnergy/EV', phone: '1-800-642-4272', summary: 'Rebates and make-ready support for commercial EV charging station deployment.' }
+  };
+  // Eversource (CT/MA/NH)
+  if (u.includes('eversource')) return {
+    lighting: { name: 'Eversource Business Energy Solutions — Lighting', admin: 'Eversource', website: 'https://www.eversource.com/content/business/save-money-energy/energy-efficiency-programs', phone: '1-800-286-2000', summary: 'Prescriptive rebates for LED lighting retrofits and controls in commercial and industrial buildings.' },
+    ev: { name: 'Eversource EV Charging Program', admin: 'Eversource', website: 'https://www.eversource.com/content/residential/save-money-energy/clean-energy-options/electric-vehicles', phone: '1-800-286-2000', summary: 'Make-ready and equipment rebates for commercial EV charging infrastructure.' }
+  };
+  // NV Energy (NV)
+  if (u.includes('nv energy') || u.includes('nevada power') || u.includes('sierra pacific')) return {
+    lighting: { name: 'NV Energy EfficiencySmarts — Commercial Lighting', admin: 'NV Energy', website: 'https://www.nvenergy.com/business/save-energy-money/business-energy-efficiency', phone: '1-800-316-3081', summary: 'Prescriptive rebates for LED lighting and controls upgrades in commercial buildings.' },
+    ev: { name: 'NV Energy EV Charging Rebates', admin: 'NV Energy', website: 'https://www.nvenergy.com/home/products-services/electric-vehicles', phone: '1-800-316-3081', summary: 'Rebates for commercial EV charging station deployment for workplaces and fleets.' }
+  };
+  // APS (AZ)
+  if (u.includes('arizona public service') || u.includes('aps')) return {
+    lighting: { name: 'APS Business Energy Efficiency — Lighting', admin: 'Arizona Public Service', website: 'https://www.aps.com/en/Business/SavingEnergy/Rebates/Pages/home.aspx', phone: '1-602-371-7171', summary: 'Prescriptive rebates for LED lighting and controls in commercial facilities.' },
+    ev: { name: 'APS Electric Vehicle Charging Program', admin: 'Arizona Public Service', website: 'https://www.aps.com/en/Residential/ServicePlans/ElectricVehicles', phone: '1-602-371-7171', summary: 'Rebates and rate options for commercial EV charging infrastructure.' }
+  };
+  // Salt River Project (AZ)
+  if (u.includes('salt river') || u.includes('srp')) return {
+    lighting: { name: 'SRP Business Energy Efficiency — Lighting', admin: 'Salt River Project', website: 'https://www.srpnet.com/energy-savings-rebates/business', phone: '1-602-236-8833', summary: 'Prescriptive rebates for LED lighting and controls upgrades in commercial buildings.' },
+    ev: { name: 'SRP EV Charging Rebates', admin: 'Salt River Project', website: 'https://www.srpnet.com/electric-vehicles', phone: '1-602-236-8833', summary: 'Rebates for commercial and fleet EV charging station installation.' }
+  };
+  // Default — link to UtilityGenius
+  return {
+    lighting: { name: 'Search UtilityGenius for Commercial Lighting Programs', admin: 'UtilityGenius / Encentiv Energy', website: ugUrl, phone: null, summary: `Search UtilityGenius (app.utilitygenius.com) for current commercial lighting rebate programs available from ${utilityName || 'your utility'}.` },
+    ev: { name: 'Search UtilityGenius for EV Charging Programs', admin: 'UtilityGenius / Encentiv Energy', website: ugUrl, phone: null, summary: `Search UtilityGenius (app.utilitygenius.com) for current EV charging incentive programs available from ${utilityName || 'your utility'}.` }
+  };
+}
+
+function renderHistory() {
+  const sec = document.getElementById('historySection'), body = document.getElementById('historyBody');
+  if (!lookupHistory.length) { sec.style.display = 'none'; return; }
+  sec.style.display = 'block';
+  body.innerHTML = lookupHistory.slice(0, 8).map(h =>
+    `<tr onclick="document.getElementById('addr').value='${h.addr.replace(/'/g,"\\'")}'; document.getElementById('addr').focus();">
+      <td>${h.addr}</td><td style="font-weight:600;color:var(--fiord)">${h.utility}</td>
+      <td>${h.state || '—'}</td><td>${h.commercial || '—'}</td>
+    </tr>`).join('');
+}
+
+function saveToHistory(addr, utility, state, commercial) {
+  lookupHistory = [{ addr, utility, state, commercial }, ...lookupHistory.filter(h => h.addr !== addr)].slice(0, 20);
+  localStorage.setItem(HISTORY_STORE, JSON.stringify(lookupHistory));
+  renderHistory();
+}
+
+renderHistory();
+
+function programCardHtml(prog, type) {
+  return `
+    <div class="program-card ${type}">
+      <div class="program-title ${type}">${type === 'lighting' ? '💡 Commercial Lighting' : '⚡ EV Charging'}</div>
+      <div class="program-name ${type}">${prog.name}</div>
+      <div class="program-meta ${type}">
+        ${prog.admin ? `<strong>Administrator:</strong> ${prog.admin}<br>` : ''}
+        ${prog.website ? `<strong>Website:</strong> <a href="${prog.website}" target="_blank">${prog.website.replace(/^https?:\/\//, '')}</a><br>` : ''}
+        ${prog.phone ? `<strong>Phone:</strong> ${prog.phone}<br>` : ''}
+        ${prog.summary ? `<br>${prog.summary}` : ''}
+      </div>
+    </div>`;
+}
+
+async function doSearch() {
+  const q = document.getElementById('addr').value.trim();
+  if (!q) { document.getElementById('addr').focus(); return; }
+  clearError();
+  document.getElementById('result').innerHTML = '';
+  document.getElementById('searchBtn').disabled = true;
+  try {
+    setStatus('Step 1 of 2 — Geocoding address via US Census Bureau...');
+    const geo = await geocode(q);
+    if (!geo) {
+      clearStatus();
+      setError('Address not found. Please include a full street address with city and state.');
+      document.getElementById('searchBtn').disabled = false;
+      return;
+    }
+
+    setStatus('Step 2 of 2 — Querying NREL Utility Rates API...');
+    const nrel = await queryNREL(geo.lat, geo.lon);
+    clearStatus();
+
+    if (nrel.errors && nrel.errors.length) {
+      setError('NREL API error: ' + nrel.errors.join(', '));
+      document.getElementById('searchBtn').disabled = false;
+      return;
+    }
+
+    const out = nrel.outputs;
+    if (!out || !out.utility_name) {
+      setError('No utility territory found for this location. Try adding a zip code.');
+      document.getElementById('searchBtn').disabled = false;
+      return;
+    }
+
+    const utilities = out.utility_info || [{ utility_name: out.utility_name, company_id: out.company_id }];
+    const primary = utilities[0];
+    const state = geo.state;
+    const programs = getPrograms(primary.utility_name, state);
+
+    // Use EIA 2024 state commercial rate instead of NREL 2012 rate
+    const eiaRate = EIA_2024_COMMERCIAL[state];
+    const commRate = eiaRate ? eiaRate.toFixed(1) + '¢' : (out.commercial ? (out.commercial * 100).toFixed(2) + '¢*' : '—');
+    const rateSource = eiaRate ? 'EIA 2024 state avg' : 'NREL 2012 avg';
+
+    saveToHistory(q, primary.utility_name, state, commRate);
+
+    const multiHtml = utilities.length > 1 ? `
+      <div class="section-block">
+        <div class="section-block-title">Multiple Utilities Found</div>
+        <div class="multi-card">⚡ <strong>${utilities.length} utilities</strong> serve this area: ${utilities.map(u => `<strong>${u.utility_name}</strong>`).join(' &nbsp;·&nbsp; ')}<br>Incentive programs shown are for the primary utility above.</div>
+      </div>` : '';
+
+    document.getElementById('result').innerHTML = `
+      <div class="results-wrap">
+        <div class="results-header">
+          <span class="results-title">${primary.utility_name}</span>
+          <span class="badge badge-nrel">NREL Verified</span>
+        </div>
+        <div class="stat-row">
+          <div class="stat-cell"><div class="stat-label">Matched Address</div><div class="stat-value normal">${geo.matchedAddress}</div></div>
+          <div class="stat-cell"><div class="stat-label">State</div><div class="stat-value">${state || '—'}</div></div>
+          <div class="stat-cell"><div class="stat-label">Commercial Rate</div><div class="stat-value commercial" style="color:#3a6b0a">${commRate}</div></div>
+          <div class="stat-cell"><div class="stat-label">Rate Source</div><div class="stat-value normal">${rateSource}</div></div>
+        </div>
+        ${multiHtml}
+      </div>`;
+
+  } catch(err) {
+    clearStatus();
+    setError('Lookup failed: ' + err.message + '<br>Check your internet connection and try again.');
+    console.error(err);
+  }
+  document.getElementById('searchBtn').disabled = false;
+}
+</script>
+</body>
+</html>
