@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Electric Utility Lookup</title>
+<style>
+  :root {
+    --fiord: #3d5166;
+    --fiord-dark: #2c3e50;
+    --green: #2ecc71;
+    --green-dark: #27ae60;
+    --light-bg: #f4f7f9;
+    --border: #dce3ea;
+    --text: #2c3e50;
+    --muted: #6b7f8e;
+    --white: #ffffff;
+    --radius: 8px;
+    --shadow: 0 2px 12px rgba(61,81,102,0.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--light-bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  header {
+    background: var(--fiord);
+    color: var(--white);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  header .logo {
+    background: var(--green);
+    color: var(--white);
+    font-weight: 700;
+    font-size: 14px;
+    padding: 6px 10px;
+    border-radius: 5px;
+    letter-spacing: 0.5px;
+  }
+  header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+  }
+  header .home-btn {
+    margin-left: auto;
+    background: transparent;
+    border: 1.5px solid rgba(255,255,255,0.4);
+    color: var(--white);
+    padding: 6px 14px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  header .home-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.7); }
+
+  .container { max-width: 720px; margin: 0 auto; padding: 32px 20px; }
+
+  .card {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+
+  .card h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--fiord);
+    margin-bottom: 16px;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 10px;
+  }
+  input[type="text"] {
+    flex: 1;
+    padding: 11px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 15px;
+    color: var(--text);
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  input[type="text"]:focus { border-color: var(--fiord); }
+  input[type="text"]::placeholder { color: #aab4bc; }
+
+  button.primary {
+    background: var(--green);
+    color: var(--white);
+    border: none;
+    padding: 11px 22px;
+    border-radius: var(--radius);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s, transform 0.1s;
+  }
+  button.primary:hover { background: var(--green-dark); }
+  button.primary:active { transform: scale(0.98); }
+  button.primary:disabled { background: #a8d5bc; cursor: not-allowed; }
+
+  .hint { font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+  /* Status */
+  .status {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    margin-top: 16px;
+  }
+  .status.loading { display: flex; background: #eef4fb; color: var(--fiord); }
+  .status.error { display: flex; background: #fdecea; color: #c0392b; }
+
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2.5px solid rgba(61,81,102,0.2);
+    border-top-color: var(--fiord);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Results */
+  #results { display: none; }
+
+  .result-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .utility-icon {
+    width: 52px; height: 52px;
+    background: var(--fiord);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .utility-icon svg { width: 26px; height: 26px; fill: var(--white); }
+  .utility-name { font-size: 22px; font-weight: 700; color: var(--fiord); line-height: 1.2; }
+  .utility-type { font-size: 13px; color: var(--muted); margin-top: 3px; }
+
+  /* TDU badge for Texas */
+  .tdu-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff8e6;
+    border: 1.5px solid #f0c040;
+    color: #7a5500;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-top: 6px;
+  }
+  .tdu-badge svg { width: 13px; height: 13px; fill: #c8860a; }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 500px) { .detail-grid { grid-template-columns: 1fr; } }
+
+  .detail-item {
+    background: var(--light-bg);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+  }
+  .detail-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .detail-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .detail-value.highlight {
+    color: var(--fiord);
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  /* Rebate section */
+  .rebate-section { margin-top: 4px; }
+  .rebate-section h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--fiord);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .rebate-section h3::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .rebate-card {
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    transition: border-color 0.2s;
+  }
+  .rebate-card:hover { border-color: var(--green); }
+  .rebate-card:last-child { margin-bottom: 0; }
+  .rebate-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+  .rebate-name { font-size: 14px; font-weight: 600; color: var(--text); }
+  .rebate-amount {
+    background: #e8f8ef;
+    color: var(--green-dark);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .rebate-desc { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .rebate-link {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--fiord);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .rebate-link:hover { text-decoration: underline; }
+
+  .no-rebates {
+    font-size: 13px;
+    color: var(--muted);
+    font-style: italic;
+    padding: 8px 0;
+  }
+
+  .data-source {
+    font-size: 11px;
+    color: #9aabb5;
+    margin-top: 16px;
+    text-align: right;
+  }
+
+  /* Texas note */
+  .texas-note {
+    background: #fffbf0;
+    border: 1px solid #f0d98c;
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    font-size: 13px;
+    color: #6b5300;
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .texas-note strong { color: #4a3900; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">PEC</div>
+  <h1>Electric Utility Lookup</h1>
+  <a href="/" class="home-btn">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+    Home
+  </a>
+</header>
+
+<div class="container">
+  <div class="card">
+    <h2>Look up electric utility &amp; rebate programs</h2>
+    <div class="input-row">
+      <input type="text" id="addressInput" placeholder="Enter a street address, city, state…" autocomplete="off">
+      <button class="primary" onclick="lookupUtility()" id="lookupBtn">Look Up</button>
+    </div>
+    <div class="hint">Works for US addresses. For Texas addresses, identifies the delivery company (TDU).</div>
+    <div class="status loading" id="statusLoading">
+      <div class="spinner"></div>
+      <span id="statusText">Looking up address…</span>
+    </div>
+    <div class="status error" id="statusError"></div>
+  </div>
+
+  <div class="card" id="results">
+    <div id="texasNote" class="texas-note" style="display:none"></div>
+    <div class="result-header">
+      <div class="utility-icon">
+        <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      </div>
+      <div>
+        <div class="utility-name" id="utilityName">—</div>
+        <div class="utility-type" id="utilityType">—</div>
+        <div id="tduBadge" style="display:none" class="tdu-badge">
+          <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          <span id="tduBadgeText">Transmission &amp; Distribution Utility</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-grid">
+      <div class="detail-item">
+        <div class="detail-label">Address</div>
+        <div class="detail-value" id="detailAddress">—</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">State</div>
+        <div class="detail-value" id="detailState">—</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label">Utility Type</div>
+        <div class="detail-value" id="detailUtilityClass">—</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-label" id="detailTduLabel">EIA Utility ID</div>
+        <div class="detail-value highlight" id="detailTduValue">—</div>
+      </div>
+    </div>
+
+    <div class="rebate-section">
+      <h3>Rebate &amp; Incentive Programs</h3>
+      <div id="rebateList"></div>
+    </div>
+
+    <div class="data-source" id="dataSource">Source: NREL Utility Rates API · EIA · Briteswitch</div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────────────────────
+const PROXY = 'https://api.allorigins.win/get?url=';
+const CENSUS_GEO = 'https://geocoding.geo.census.gov/geocoder/locations/onelineaddress';
+const NREL_API = 'https://developer.nrel.gov/api/utility_rates/v3.json?api_key=DEMO_KEY';
+// ArcGIS item for Texas TDU boundaries (from user-provided URL)
+const TX_TDU_ITEM_ID = '597555ce8e4a4892a030784a7c657fdd';
+const TX_TDU_ARCGIS_ITEM_URL = `https://www.arcgis.com/sharing/rest/content/items/${TX_TDU_ITEM_ID}?f=json`;
+// Fallback: HIFLD national layer (known working)
+const HIFLD_QUERY_URL = 'https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Electric_Retail_Service_Territories/FeatureServer/0/query';
+
+// Texas TDU known mappings for fuzzy fallback
+const TX_TDU_MAP = {
+  'oncor': 'Oncor Electric Delivery',
+  'centerpoint': 'CenterPoint Energy',
+  'aep texas central': 'AEP Texas Central',
+  'aep texas north': 'AEP Texas North',
+  'aep central': 'AEP Texas Central',
+  'aep north': 'AEP Texas North',
+  'tnmp': 'Texas-New Mexico Power (TNMP)',
+  'texas-new mexico': 'Texas-New Mexico Power (TNMP)',
+  'lp&l': 'Lubbock Power & Light',
+  'lubbock': 'Lubbock Power & Light',
+  'austin energy': 'Austin Energy (Municipal)',
+  'cps energy': 'CPS Energy (Municipal — San Antonio)',
+  'el paso electric': 'El Paso Electric',
+};
+
+// Embedded Briteswitch rebate data (sample — extend as needed)
+const REBATE_DATA = {
+  'oncor': [
+    { name: "Oncor Energy Efficiency Program — Commercial Lighting", amount: "Varies by measure", desc: "Incentives for LED retrofits, controls, and new construction lighting in commercial facilities.", url: "https://www.oncor.com/saveenergy" },
+    { name: "Oncor Low Income Weatherization", amount: "Up to project cost", desc: "Insulation, air sealing, and HVAC upgrades for qualifying low-income customers.", url: "https://www.oncor.com/saveenergy" }
+  ],
+  'centerpoint': [
+    { name: "CenterPoint Energy Efficiency Program", amount: "Varies", desc: "Commercial and industrial rebates for lighting, HVAC, motors, and building envelope.", url: "https://www.centerpointenergy.com/saveenergy" }
+  ],
+  'aep texas': [
+    { name: "AEP Texas Energy Efficiency", amount: "Varies by measure", desc: "Rebates for commercial lighting, HVAC, and custom efficiency projects.", url: "https://www.aeptexas.com/efficiency" }
+  ],
+  'tnmp': [
+    { name: "TNMP Energy Efficiency Program", amount: "Varies", desc: "Rebates for commercial and residential efficiency upgrades in TNMP territory.", url: "https://www.tnmp.com/save-energy" }
+  ],
+  // Oregon
+  'pacific power': [
+    { name: "Energy Trust of Oregon — Existing Buildings Lighting", amount: "Varies by fixture type", desc: "Cash incentives for LED lighting upgrades in existing commercial buildings through Energy Trust of Oregon.", url: "https://www.energytrust.org/existing-buildings" }
+  ],
+  'portland general electric': [
+    { name: "Energy Trust of Oregon — Existing Buildings", amount: "Varies", desc: "Lighting and efficiency incentives for PGE commercial customers through Energy Trust.", url: "https://www.energytrust.org/existing-buildings" }
+  ],
+};
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let txTduServiceUrl = null; // cached after first discovery
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function setStatus(type, msg) {
+  document.getElementById('statusLoading').classList.remove('loading');
+  document.getElementById('statusError').style.display = 'none';
+  if (type === 'loading') {
+    document.getElementById('statusLoading').classList.add('loading');
+    document.getElementById('statusLoading').style.display = 'flex';
+    document.getElementById('statusText').textContent = msg;
+  } else if (type === 'error') {
+    document.getElementById('statusError').style.display = 'flex';
+    document.getElementById('statusError').textContent = msg;
+  } else {
+    document.getElementById('statusLoading').style.display = 'none';
+  }
+}
+
+async function proxyFetch(url) {
+  const res = await fetch(PROXY + encodeURIComponent(url));
+  const json = await res.json();
+  return JSON.parse(json.contents);
+}
+
+// ── GEOCODING ────────────────────────────────────────────────────────────────
+async function geocodeAddress(address) {
+  const url = `${CENSUS_GEO}?address=${encodeURIComponent(address)}&benchmark=Public_AR_Current&format=json`;
+  const res = await fetch(url);
+  const data = await res.json();
+  const matches = data.result?.addressMatches;
+  if (!matches || matches.length === 0) throw new Error('Address not found. Try adding a state or ZIP code.');
+  const match = matches[0];
+  return {
+    lat: parseFloat(match.coordinates.y),
+    lng: parseFloat(match.coordinates.x),
+    formatted: match.matchedAddress,
+    state: match.addressComponents?.state || ''
+  };
+}
+
+// ── TEXAS TDU LOOKUP ─────────────────────────────────────────────────────────
+async function discoverTxServiceUrl() {
+  if (txTduServiceUrl) return txTduServiceUrl;
+  try {
+    const item = await proxyFetch(TX_TDU_ARCGIS_ITEM_URL);
+    if (item && item.url) {
+      // item.url is the FeatureServer root, append /0/query
+      txTduServiceUrl = item.url.replace(/\/?$/, '') + '/0';
+      return txTduServiceUrl;
+    }
+  } catch(e) {
+    console.warn('Could not discover TX TDU service URL from item metadata:', e);
+  }
+  return null;
+}
+
+async function queryTxTdu(lat, lng) {
+  const geometry = JSON.stringify({ x: lng, y: lat, spatialReference: { wkid: 4326 } });
+  const params = new URLSearchParams({
+    geometry,
+    geometryType: 'esriGeometryPoint',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    outFields: '*',
+    returnGeometry: 'false',
+    f: 'json'
+  });
+
+  // Try user-provided layer first
+  const serviceUrl = await discoverTxServiceUrl();
+  if (serviceUrl) {
+    try {
+      const data = await proxyFetch(`${serviceUrl}/query?${params}`);
+      if (data.features && data.features.length > 0) {
+        return data.features[0].attributes;
+      }
+    } catch(e) {
+      console.warn('Primary TX TDU query failed:', e);
+    }
+  }
+
+  // Fallback to HIFLD, filtered to Texas
+  try {
+    const hifldParams = new URLSearchParams({
+      geometry,
+      geometryType: 'esriGeometryPoint',
+      inSR: '4326',
+      spatialRel: 'esriSpatialRelIntersects',
+      where: "STATE = 'TX'",
+      outFields: 'NAME,TYPE,STATE,EIA_ID',
+      returnGeometry: 'false',
+      f: 'json'
+    });
+    const data = await proxyFetch(`${HIFLD_QUERY_URL}?${hifldParams}`);
+    if (data.features && data.features.length > 0) {
+      return data.features[0].attributes;
+    }
+  } catch(e) {
+    console.warn('HIFLD TX fallback failed:', e);
+  }
+  return null;
+}
+
+function normalizeTduName(rawName) {
+  if (!rawName) return null;
+  const lower = rawName.toLowerCase();
+  for (const [key, display] of Object.entries(TX_TDU_MAP)) {
+    if (lower.includes(key)) return display;
+  }
+  // Title-case the raw name as last resort
+  return rawName.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+}
+
+// ── NREL UTILITY LOOKUP ───────────────────────────────────────────────────────
+async function nrelLookup(lat, lng) {
+  const url = `${NREL_API}&lat=${lat}&lon=${lng}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  if (data.outputs) return data.outputs;
+  throw new Error('Could not retrieve utility data from NREL.');
+}
+
+// ── REBATES ───────────────────────────────────────────────────────────────────
+function findRebates(utilityName) {
+  if (!utilityName) return [];
+  const lower = utilityName.toLowerCase();
+  for (const [key, programs] of Object.entries(REBATE_DATA)) {
+    if (lower.includes(key)) return programs;
+  }
+  return [];
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function renderResults(opts) {
+  const {
+    address, state, utilityName, utilityType, utilityClass, utilityId,
+    isTx, tduName, tduRaw, rebates, source
+  } = opts;
+
+  document.getElementById('detailAddress').textContent = address || '—';
+  document.getElementById('detailState').textContent = state || '—';
+  document.getElementById('utilityName').textContent = isTx && tduName ? tduName : (utilityName || '—');
+  document.getElementById('utilityType').textContent = isTx
+    ? 'Transmission & Distribution Utility (TDU) · Texas ERCOT'
+    : (utilityType || '—');
+  document.getElementById('detailUtilityClass').textContent = utilityClass || '—';
+
+  if (isTx && tduName) {
+    document.getElementById('tduBadge').style.display = 'inline-flex';
+    document.getElementById('tduBadgeText').textContent = 'Texas TDU (Delivery Company)';
+    document.getElementById('detailTduLabel').textContent = 'Delivery Company';
+    document.getElementById('detailTduValue').textContent = tduName;
+    document.getElementById('texasNote').style.display = 'block';
+    document.getElementById('texasNote').innerHTML =
+      `<strong>Texas deregulated market:</strong> Your delivery company (TDU) is <strong>${tduName}</strong>. `+
+      `This is the company that owns the wires and responds to outages. You may choose a separate retail electricity provider (REP).`;
+  } else {
+    document.getElementById('tduBadge').style.display = 'none';
+    document.getElementById('texasNote').style.display = 'none';
+    document.getElementById('detailTduLabel').textContent = 'EIA Utility ID';
+    document.getElementById('detailTduValue').textContent = utilityId || '—';
+  }
+
+  // Rebates
+  const rebateList = document.getElementById('rebateList');
+  if (rebates && rebates.length > 0) {
+    rebateList.innerHTML = rebates.map(r => `
+      <div class="rebate-card">
+        <div class="rebate-top">
+          <div class="rebate-name">${r.name}</div>
+          <div class="rebate-amount">${r.amount}</div>
+        </div>
+        <div class="rebate-desc">${r.desc}</div>
+        ${r.url ? `<a class="rebate-link" href="${r.url}" target="_blank">Learn more →</a>` : ''}
+      </div>
+    `).join('');
+  } else {
+    rebateList.innerHTML = '<div class="no-rebates">No rebate programs on file for this utility. Contact the utility directly or visit the DSIRE database at dsireusa.org.</div>';
+  }
+
+  document.getElementById('dataSource').textContent = source || 'Source: NREL · Census Geocoder · ArcGIS';
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ── MAIN LOOKUP ───────────────────────────────────────────────────────────────
+async function lookupUtility() {
+  const address = document.getElementById('addressInput').value.trim();
+  if (!address) {
+    document.getElementById('addressInput').focus();
+    return;
+  }
+
+  document.getElementById('lookupBtn').disabled = true;
+  document.getElementById('results').style.display = 'none';
+  setStatus('loading', 'Geocoding address…');
+
+  try {
+    // 1. Geocode
+    setStatus('loading', 'Geocoding address…');
+    const geo = await geocodeAddress(address);
+    const isTx = geo.state === 'TX';
+
+    // 2a. Texas path — query TDU layer
+    if (isTx) {
+      setStatus('loading', 'Identifying Texas delivery company (TDU)…');
+      const tduAttrs = await queryTxTdu(geo.lat, geo.lng);
+      const tduName = normalizeTduName(tduAttrs?.NAME || tduAttrs?.UtilName || tduAttrs?.UTILITY_NA);
+      const rebates = findRebates(tduName);
+
+      // Also get NREL data for utility class info
+      let nrelData = null;
+      try {
+        setStatus('loading', 'Fetching rate & utility data…');
+        nrelData = await nrelLookup(geo.lat, geo.lng);
+      } catch(e) { /* non-fatal */ }
+
+      renderResults({
+        address: geo.formatted,
+        state: 'Texas',
+        utilityName: nrelData?.utility_name || tduName,
+        utilityType: 'Electric Delivery (TDU)',
+        utilityClass: nrelData?.ownership || 'Investor-Owned Utility',
+        utilityId: nrelData?.eia_id || tduAttrs?.EIA_ID || '—',
+        isTx: true,
+        tduName,
+        tduRaw: tduAttrs?.NAME,
+        rebates,
+        source: tduAttrs
+          ? `TDU source: ArcGIS layer ${TX_TDU_ITEM_ID} · NREL Utility Rates API · Briteswitch (Apr 2026)`
+          : 'Source: NREL Utility Rates API · Briteswitch (Apr 2026)'
+      });
+
+    } else {
+      // 2b. Non-Texas path — NREL lookup
+      setStatus('loading', 'Fetching utility & rate data…');
+      const nrel = await nrelLookup(geo.lat, geo.lng);
+      const utilityName = nrel.utility_name || 'Unknown Utility';
+      const rebates = findRebates(utilityName);
+
+      const stateNames = { OR:'Oregon', WA:'Washington', CA:'California', ID:'Idaho', NV:'Nevada', MT:'Montana' };
+      const stateFull = stateNames[geo.state] || geo.state;
+
+      renderResults({
+        address: geo.formatted,
+        state: stateFull,
+        utilityName,
+        utilityType: nrel.ownership || '—',
+        utilityClass: nrel.ownership || '—',
+        utilityId: nrel.eia_id || '—',
+        isTx: false,
+        tduName: null,
+        rebates,
+        source: 'Source: NREL Utility Rates API · Census Geocoder · Briteswitch (Apr 2026)'
+      });
+    }
+
+    setStatus('clear');
+
+  } catch (err) {
+    setStatus('error', err.message || 'Lookup failed. Please try again.');
+    console.error(err);
+  } finally {
+    document.getElementById('lookupBtn').disabled = false;
+  }
+}
+
+// Enter key support
+document.getElementById('addressInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') lookupUtility();
+});
+</script>
+</body>
+</html>
