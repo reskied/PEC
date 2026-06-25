@@ -7,7 +7,6 @@ export default async function handler(req, res) {
     res.status(400).json({ error: 'Missing url parameter' });
     return;
   }
-  // Only allow the two upstream hosts this tool actually needs.
   let host;
   try {
     host = new URL(target).hostname;
@@ -26,15 +25,26 @@ export default async function handler(req, res) {
   }
   try {
     const upstream = await fetch(target, {
-      headers: { 'User-Agent': 'PEC-Utility-Lookup' },
+      redirect: 'follow',
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent':
+          'Mozilla/5.0 (compatible; PEC-Utility-Lookup/1.0; +https://pec-vert-delta.vercel.app)',
+      },
     });
     const body = await upstream.text();
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Content-Type', 'application/json');
-    // Cache identical lookups at the edge for an hour.
     res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
     res.status(upstream.status).send(body);
   } catch (e) {
-    res.status(502).json({ error: 'Upstream fetch failed: ' + String(e) });
+    // Surface the underlying cause so we can see the real failure
+    const cause = e && e.cause ? e.cause : {};
+    res.status(502).json({
+      error: 'Upstream fetch failed: ' + String(e),
+      causeMessage: cause && cause.message ? String(cause.message) : '',
+      causeCode: cause && cause.code ? String(cause.code) : '',
+      errno: cause && cause.errno ? String(cause.errno) : '',
+    });
   }
 }
