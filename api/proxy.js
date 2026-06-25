@@ -1,31 +1,41 @@
-// Vercel Serverless Function — same-origin CORS proxy
+// Vercel Edge Function — same-origin CORS proxy
 // Lives at /api/proxy on your deployed site.
-// Fetches the target URL server-side (no browser CORS) and returns the body.
-export default async function handler(req, res) {
-  const target = req.query.url;
-  if (!target) {
-    res.status(400).json({ error: 'Missing url parameter' });
-    return;
-  }
+// Runs on Vercel's Edge runtime, which resolves public DNS reliably
+// (the Node serverless runtime fails here with getaddrinfo ENOTFOUND).
+export const config = { runtime: 'edge' };
+
+const ALLOWED = [
+  'developer.nrel.gov',
+  'geocoding.geo.census.gov',
+  'services2.arcgis.com',
+];
+
+function json(obj, status) {
+  return new Response(JSON.stringify(obj), {
+    status: status,
+    headers: {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+    },
+  });
+}
+
+export default async function handler(request) {
+  const target = new URL(request.url).searchParams.get('url');
+  if (!target) return json({ error: 'Missing url parameter' }, 400);
+
   let host;
   try {
     host = new URL(target).hostname;
   } catch (e) {
-    res.status(400).json({ error: 'Invalid url' });
-    return;
+    return json({ error: 'Invalid url' }, 400);
   }
-  const allowed = [
-    'developer.nrel.gov',
-    'geocoding.geo.census.gov',
-    'services2.arcgis.com',
-  ];
-  if (!allowed.includes(host)) {
-    res.status(403).json({ error: 'Host not allowed: ' + host });
-    return;
+  if (!ALLOWED.includes(host)) {
+    return json({ error: 'Host not allowed: ' + host }, 403);
   }
+
   try {
     const upstream = await fetch(target, {
-      redirect: 'follow',
       headers: {
         'Accept': 'application/json',
         'User-Agent':
@@ -33,18 +43,15 @@ export default async function handler(req, res) {
       },
     });
     const body = await upstream.text();
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
-    res.status(upstream.status).send(body);
-  } catch (e) {
-    // Surface the underlying cause so we can see the real failure
-    const cause = e && e.cause ? e.cause : {};
-    res.status(502).json({
-      error: 'Upstream fetch failed: ' + String(e),
-      causeMessage: cause && cause.message ? String(cause.message) : '',
-      causeCode: cause && cause.code ? String(cause.code) : '',
-      errno: cause && cause.errno ? String(cause.errno) : '',
+    return new Response(body, {
+      status: upstream.status,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Cache-Control': 's-maxage=3600, stale-while-revalidate',
+      },
     });
+  } catch (e) {
+    return json({ error: 'Upstream fetch failed: ' + String(e) }, 502);
   }
 }
