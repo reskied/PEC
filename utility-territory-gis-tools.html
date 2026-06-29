@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Electric Utility Service-Territory GIS Tools | PEC Energy Programs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --fiord:#3E4E61;
+    --fiord-dark:#33414f;
+    --green:#A0C93A;
+    --green-dark:#7da520;
+    --ink:#2b333d;
+    --muted:#6b7682;
+    --line:#e2e7ec;
+    --light:#eef3e4;
+    --bg:#f6f8f5;
+    --card:#ffffff;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:"Montserrat",Arial,Helvetica,sans-serif;
+    color:var(--ink);
+    background:var(--bg);
+    line-height:1.5;
+  }
+  a{color:var(--fiord);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* Header */
+  header{
+    background:var(--fiord);
+    color:#fff;
+    padding:18px 28px;
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+    border-bottom:4px solid var(--green);
+    position:sticky;top:0;z-index:20;
+  }
+  .brand{display:flex;align-items:center;gap:14px;min-width:0}
+  .mark{
+    font-weight:700;letter-spacing:1px;font-size:18px;
+    background:var(--green);color:var(--fiord);
+    padding:6px 10px;border-radius:4px;flex:none;
+  }
+  .titles h1{font-size:18px;font-weight:600;margin:0;line-height:1.2}
+  .titles p{font-size:12px;margin:2px 0 0;color:#cdd4dc;font-weight:400}
+  .home{
+    flex:none;
+    background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.55);
+    padding:8px 16px;border-radius:4px;font-family:inherit;font-size:13px;font-weight:600;
+    cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:7px;
+  }
+  .home:hover{background:var(--green);border-color:var(--green);color:var(--fiord);text-decoration:none}
+
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 28px 60px}
+
+  /* Intro */
+  .intro{margin:6px 0 26px}
+  .intro .lead{font-size:15px;max-width:78ch;color:var(--ink)}
+  .caveat{
+    margin-top:14px;font-size:13px;color:var(--muted);
+    border-left:3px solid var(--green);padding:8px 14px;background:var(--card);border-radius:0 6px 6px 0;
+    max-width:90ch;
+  }
+
+  h2.section{
+    font-size:15px;font-weight:700;color:var(--fiord);text-transform:uppercase;letter-spacing:.6px;
+    margin:34px 0 14px;padding-bottom:7px;border-bottom:2px solid var(--green);
+  }
+
+  /* National cards */
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px 16px 14px;
+    border-top:3px solid var(--fiord);display:flex;flex-direction:column;
+  }
+  .card.regional{border-top-color:var(--green)}
+  .card.adjacent{border-top-color:#c2cad2;background:#fafbfc}
+  .card h3{margin:0 0 4px;font-size:14px;font-weight:600;color:var(--fiord)}
+  .card .type{font-size:12px;color:var(--muted);margin:0 0 8px}
+  .card .note{font-size:12.5px;color:var(--ink);margin:0 0 12px;flex:1}
+  .card .visit{font-size:13px;font-weight:600;color:var(--green-dark);align-self:flex-start}
+  .pill{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+    padding:2px 7px;border-radius:20px;margin-bottom:9px}
+  .pill.nat{background:var(--fiord);color:#fff}
+  .pill.reg{background:var(--green);color:var(--fiord)}
+  .pill.adj{background:#dfe4e9;color:#5a6571}
+
+  /* Controls */
+  .controls{
+    display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin:8px 0 16px;
+    background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px 16px;
+    position:sticky;top:78px;z-index:10;
+  }
+  .search{flex:1;min-width:220px;position:relative}
+  .search input{
+    width:100%;font-family:inherit;font-size:14px;padding:10px 12px 10px 36px;
+    border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);
+  }
+  .search input:focus{outline:none;border-color:var(--fiord);box-shadow:0 0 0 3px rgba(62,78,97,.12)}
+  .search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);opacity:.45}
+  .toggle{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:500;cursor:pointer;user-select:none}
+  .toggle input{accent-color:var(--green-dark);width:16px;height:16px;cursor:pointer}
+  .count{font-size:12.5px;color:var(--muted);font-weight:500;margin-left:auto}
+
+  /* Table */
+  table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  thead th{
+    background:var(--fiord);color:#fff;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;
+    text-align:left;padding:11px 14px;
+  }
+  tbody td{padding:11px 14px;font-size:13px;border-top:1px solid var(--line);vertical-align:top}
+  tbody tr.dedicated{border-left:3px solid var(--green)}
+  tbody tr.national-only{border-left:3px solid transparent}
+  tbody tr:hover{background:#fafcf6}
+  .state{font-weight:600;color:var(--fiord);white-space:nowrap}
+  .badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;padding:2px 7px;border-radius:20px;white-space:nowrap}
+  .badge.yes{background:var(--light);color:var(--green-dark)}
+  .badge.no{background:#eef1f3;color:#8a939c}
+  .badge.rest{background:#fff;color:var(--fiord);border:1px solid var(--fiord)}
+  .badge.partial{background:#fff;color:#9a8a3a;border:1px solid #cdbb55}
+  td.links a{display:inline-block;margin-right:4px;word-break:break-word}
+  .agency{color:var(--ink)}
+  .type-cell{color:var(--muted);font-size:12.5px}
+  .empty{padding:30px;text-align:center;color:var(--muted);font-size:14px;display:none}
+
+  footer{margin-top:34px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px}
+  footer strong{color:var(--fiord)}
+
+  @media (max-width:680px){
+    header{padding:14px 16px}
+    .titles p{display:none}
+    .wrap{padding:20px 16px 50px}
+    .controls{top:70px}
+    thead{display:none}
+    tbody td{display:block;border-top:none;padding:4px 14px}
+    tbody tr{display:block;border-top:1px solid var(--line);padding:10px 0}
+    .state{font-size:15px}
+    td.before::before{content:attr(data-label);display:block;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700;margin-top:6px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <span class="mark">PEC</span>
+    <div class="titles">
+      <h1>Electric Utility Service-Territory GIS Tools</h1>
+      <p>Energy Programs reference &middot; mapping tools that show retail service-territory boundaries</p>
+    </div>
+  </div>
+  <a class="home" href="index.html">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+    Home
+  </a>
+</header>
+
+<div class="wrap">
+  <div class="intro">
+    <p class="lead">One foundational national dataset (HIFLD) covers all 50 states and is what most other tools are built from. State-maintained tools layer on top and are usually more current and authoritative within their state. For any state without a dedicated tool, the national HIFLD&nbsp;/&nbsp;EIA layer already covers it.</p>
+    <p class="caveat">Boundaries on essentially every source are approximate and illustrative, not survey-grade &mdash; the serving utility confirms edge cases. ORNL&rsquo;s openenergyhub copy shows &ldquo;does not exist anymore&rdquo; (Mar 2026), but the HIFLD and EIA hosted copies remain live.</p>
+  </div>
+
+  <h2 class="section">National &amp; Regional Tools</h2>
+  <div class="cards" id="natCards"></div>
+
+  <h2 class="section">Tools by State</h2>
+  <div class="controls">
+    <div class="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4E61" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3" stroke-linecap="round"/></svg>
+      <input id="search" type="search" placeholder="Search a state, agency, or tool&hellip;" autocomplete="off">
+    </div>
+    <label class="toggle"><input type="checkbox" id="fDedicated"> Dedicated tools only</label>
+    <label class="toggle"><input type="checkbox" id="fRest"> REST / queryable only</label>
+    <span class="count" id="count"></span>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:13%">State</th>
+        <th style="width:11%">Dedicated</th>
+        <th style="width:30%">Tool / Agency</th>
+        <th style="width:20%">Type</th>
+        <th style="width:9%">REST</th>
+        <th style="width:17%">Link</th>
+      </tr>
+    </thead>
+    <tbody id="stateBody"></tbody>
+  </table>
+  <div class="empty" id="empty">No matches &mdash; clear the search or filters to see all states.</div>
+
+  <h2 class="section">Notes for the Lookup Tool</h2>
+  <div class="cards">
+    <div class="card"><h3>Universal basemap</h3><p class="note">Keep the national HIFLD&nbsp;/&nbsp;EIA feature layer as the default &mdash; it underlies the NREL&nbsp;API + Census geocoder lineage already in use.</p></div>
+    <div class="card"><h3>Easiest state overrides</h3><p class="note">Queryable ArcGIS REST endpoints: NJ, NY, OH, WA, MI, MN, IN, IA. Wire these in first as overrides on top of HIFLD.</p></div>
+    <div class="card"><h3>Authority wins</h3><p class="note">Statutory &ldquo;map of record&rdquo; states (MN, OH, IA, IN, NE) should override HIFLD when they disagree.</p></div>
+    <div class="card regional"><h3>PNW QA cross-check</h3><p class="note">The NW Clean Energy Atlas documents known EIA territory errors (e.g., Tacoma Power, Benton REA) &mdash; handy for home-region lookups.</p></div>
+  </div>
+
+  <footer>
+    <strong>Pacific Energy Concepts</strong> &mdash; Energy Programs reference inventory &middot; June 2026. Tools that display actual retail electric utility service-territory polygons (not transmission lines or hosting-capacity maps).
+  </footer>
+</div>
+
+<script>
+const NAT = [
+  {tier:"National", name:"HIFLD &ndash; Electric Retail Service Territories", type:"Foundational polygon dataset (shapefile / GeoJSON / KML + ArcGIS feature layer)", note:"Source: ORNL. Covers IOU, muni, co-op, PUD. Most other tools derive from this.", url:"https://hifld-geoplatform.hub.arcgis.com/"},
+  {tier:"National", name:"EIA U.S. Energy Atlas", type:"Interactive national web map + API (GeoServices / WMS / WFS)", note:"The most usable interactive national viewer of the HIFLD layer.", url:"https://atlas.eia.gov/"},
+  {tier:"National", name:"Data.gov catalog", type:"Federal catalog mirror / download", note:"Stable citation and download point for the same dataset.", url:"https://catalog.data.gov/dataset/electric-retail-service-territories"},
+  {tier:"National", name:"NREL / OpenEI utility lookup", type:"Point lookup &mdash; utility NAME, not boundary &mdash; by lat/lon or ZIP", note:"Rates API data dated 2012; USURDB name lookup maintained. Useful programmatically.", url:"https://apps.openei.org/USURDB/"},
+  {tier:"National", name:"EEI U.S. Member Company Service Territories", type:"Static PDF, investor-owned utilities only", note:"ABB / Velocity Suite data, updated about annually.", url:"https://www.eei.org/"},
+  {tier:"Regional", name:"Northwest Clean Energy Atlas", type:"Interactive utility visualization (EIA-based) &mdash; ID, MT, OR, WA", note:"Documents known EIA territory discrepancies (e.g., Tacoma Power, Benton REA).", url:"https://www.nwceatlas.org/"},
+  {tier:"Adjacent", name:"DOE Hosting Capacity Atlas", type:"Aggregated hosting-capacity maps &mdash; NOT service territory", note:"Distribution-grid capacity; a different thing. Listed so it isn't confused with territory maps.", url:"https://www.energy.gov/cmei/us-atlas-electric-distribution-system-hosting-capacity-maps"},
+];
+
+const E = "https://atlas.eia.gov/";
+const NL = "National layer only \u2014 no dedicated viewer separately confirmed.";
+// [state, dedicated, agency, type, rest(yes/partial/no), link, link2(optional)]
+const STATES = [
+  ["Alabama",false,"HIFLD / EIA","National layer","yes",E],
+  ["Alaska",false,"HIFLD / EIA","National layer","yes",E],
+  ["Arizona",true,"AZ Corporation Commission; \u201CArizona Utility Company Boundaries\u201D","PDF + ArcGIS layer","partial","https://www.azcc.gov/"],
+  ["Arkansas",true,"AR GIS Office \u2013 Electric Utility Service Territories (polygon)","State GIS layer (GeoStor)","yes","https://gis.arkansas.gov/"],
+  ["California",true,"CEC GIS Open Data \u2013 Electric Load Serving Entities (IOU &amp; POU); CalCCA","State layer + interactive address lookup","yes","https://cecgis-caenergy.opendata.arcgis.com/","https://cal-cca.org/cca-map/"],
+  ["Colorado",true,"Colorado Geospatial Portal \u2013 Utilities Boundaries","State GIS layer","yes","https://geodata.colorado.gov/"],
+  ["Connecticut",false,"PURA (Eversource, United Illuminating)","Regulatory pages","no","https://portal.ct.gov/pura"],
+  ["Delaware",false,"HIFLD / EIA","National layer","yes",E],
+  ["Florida",false,"HIFLD / EIA","National layer (few large IOUs + co-ops)","yes",E],
+  ["Georgia",false,"GA PSC (Territorial Electric Service Act) / HIFLD","National layer + statutory assignments","yes",E],
+  ["Hawaii",false,"HIFLD / EIA","National layer","yes",E],
+  ["Idaho",false,"HIFLD / EIA (see NW Clean Energy Atlas)","National + regional","yes","https://www.nwceatlas.org/"],
+  ["Illinois",true,"Illinois Energy Association map; IL Office of Broadband layer","Interactive + state layer","yes","https://ilenergyassn.org/electric-utilities-illinois-map/"],
+  ["Indiana",true,"IndianaMap \u2013 Electric Service Territories (IURC), live-synced","Interactive + download","yes","https://www.indianamap.org/"],
+  ["Iowa",true,"Iowa Utilities Commission \u2013 Electric Service Area Boundary Map","Interactive ArcGIS + shapefiles","yes","https://iuc.iowa.gov/regulated-industries/electric/electric-service-area-boundary-map"],
+  ["Kansas",true,"Kansas Corporation Commission \u2013 Maps (electric certified areas)","Online maps","partial","https://www.kcc.ks.gov/records-information/maps"],
+  ["Kentucky",false,"HIFLD / EIA","National layer","yes",E],
+  ["Louisiana",false,"HIFLD / EIA","National layer","yes",E],
+  ["Maine",false,"HIFLD / EIA (Maine GeoLibrary)","National layer + state portal","yes",E],
+  ["Maryland",false,"MD PSC Ten-Year Plan figure; Maryland iMap","Static figure + GIS catalog","partial","https://data.imap.maryland.gov/"],
+  ["Massachusetts",false,"HIFLD / EIA (MassGIS)","National layer + state portal","yes",E],
+  ["Michigan",true,"MPSC GIS Hub","Interactive hub + downloads","yes","https://data-michiganpsc.hub.arcgis.com/"],
+  ["Minnesota",true,"MN PUC digital EUSA map; MN Geospatial Commons","Official interactive + download","yes","https://mn.gov/puc/activities/maps/"],
+  ["Mississippi",false,"HIFLD / EIA","National layer","yes",E],
+  ["Missouri",false,"MO PSC \u2013 Electric Service Areas map","Static PDF","no","https://psc.mo.gov/Electric/"],
+  ["Montana",false,"HIFLD / EIA (see NW Clean Energy Atlas)","National + regional","yes","https://www.nwceatlas.org/"],
+  ["Nebraska",true,"Nebraska Power Review Board \u2013 interactive map","Interactive","yes","https://nprb.gworks.com/"],
+  ["Nevada",false,"HIFLD / EIA","National layer","yes",E],
+  ["New Hampshire",false,"HIFLD / EIA","National layer","yes",E],
+  ["New Jersey",true,"NJDEP / NJGIN \u2013 Electric Utilities Territory Map (BPU data)","ArcGIS feature layer + REST","yes","https://njogis-newjersey.opendata.arcgis.com/"],
+  ["New Mexico",false,"HIFLD / EIA","National layer","yes",E],
+  ["New York",true,"data.ny.gov \u2013 NYS Electric Utility Service Territories; NYSERDA MapServer","Interactive + REST service","yes","https://data.ny.gov/"],
+  ["North Carolina",false,"HIFLD / EIA","National layer (few large IOUs + co-ops)","yes",E],
+  ["North Dakota",false,"HIFLD / EIA","National layer","yes",E],
+  ["Ohio",true,"PUCO interactive ArcGIS tool; ODOT TIMS feature service","Interactive + REST","yes","https://puco.ohio.gov/utilities/utility-maps"],
+  ["Oklahoma",false,"HIFLD / EIA","National layer","yes",E],
+  ["Oregon",true,"Oregon Dept. of Energy \u2013 Find Your Utility; OR PUC map","Interactive address lookup + PDF","yes","https://www.oregon.gov/energy/energy-oregon/pages/find-your-utility.aspx"],
+  ["Pennsylvania",true,"PA Electric Service Territories (ArcGIS); PASDA portal","ArcGIS layer + portal","yes","https://www.pasda.psu.edu/"],
+  ["Rhode Island",false,"HIFLD / EIA","National layer","yes",E],
+  ["South Carolina",false,"HIFLD / EIA","National layer (few large IOUs + co-ops)","yes",E],
+  ["South Dakota",false,"HIFLD / EIA","National layer","yes",E],
+  ["Tennessee",false,"HIFLD / EIA","National layer (largely TVA local power cos.)","yes",E],
+  ["Texas",true,"PUCT Electric Maps; TX Electric Service Area Boundaries Viewer","PDF + interactive (ArcGIS Experience)","yes","https://www.puc.texas.gov/industry/maps/electricity/"],
+  ["Utah",true,"Utah SGID / AGRC \u2013 Utah Electric Service Areas","State GIS layer","yes","https://hub.arcgis.com/maps/utah::utah-electrical-service"],
+  ["Vermont",true,"VT Dept. of Public Service \u2013 Electric Utility Service Territory Map","Interactive (address search)","yes","https://publicservice.vermont.gov/regulated-utilities/electric/electric-utility-maps"],
+  ["Virginia",false,"VGIN / Virginia Energy + HIFLD","State portal + national layer","partial",E],
+  ["Washington",true,"WA Dept. of Ecology Web GIS \u2013 Electric Utility Service Areas (UTC)","State GIS layer","yes","https://geo.wa.gov/"],
+  ["West Virginia",false,"HIFLD / EIA","National layer","yes",E],
+  ["Wisconsin",true,"PSC \u2013 Interactive Service Area Maps","Interactive ArcGIS","yes","https://psc.wi.gov/Pages/ForConsumers/Maps.aspx"],
+  ["Wyoming",false,"HIFLD / EIA","National layer","yes",E],
+];
+
+function host(u){ try{ return new URL(u).hostname.replace(/^www\./,""); }catch(e){ return u; } }
+
+// Render national cards
+const natCards = document.getElementById("natCards");
+NAT.forEach(t=>{
+  const cls = t.tier==="Regional" ? "regional" : t.tier==="Adjacent" ? "adjacent" : "";
+  const pill = t.tier==="Regional" ? '<span class="pill reg">Regional</span>' : t.tier==="Adjacent" ? '<span class="pill adj">Adjacent</span>' : '<span class="pill nat">National</span>';
+  const div = document.createElement("div");
+  div.className = "card "+cls;
+  div.innerHTML = pill +
+    '<h3>'+t.name+'</h3>'+
+    '<p class="type">'+t.type+'</p>'+
+    '<p class="note">'+t.note+'</p>'+
+    '<a class="visit" href="'+t.url+'" target="_blank" rel="noopener">'+host(t.url)+' &rarr;</a>';
+  natCards.appendChild(div);
+});
+
+// Render state rows
+const body = document.getElementById("stateBody");
+STATES.forEach(s=>{
+  const [state,ded,agency,type,rest,url,url2]=s;
+  const tr=document.createElement("tr");
+  tr.className = ded ? "dedicated" : "national-only";
+  tr.dataset.search = (state+" "+agency+" "+type).toLowerCase();
+  tr.dataset.ded = ded ? "1":"0";
+  tr.dataset.rest = rest;
+  const restBadge = rest==="yes" ? '<span class="badge rest">REST</span>'
+                  : rest==="partial" ? '<span class="badge partial">Partial</span>'
+                  : '<span class="badge no">&mdash;</span>';
+  let links = '<a href="'+url+'" target="_blank" rel="noopener">'+host(url)+' &rarr;</a>';
+  if(url2) links += '<br><a href="'+url2+'" target="_blank" rel="noopener">'+host(url2)+' &rarr;</a>';
+  tr.innerHTML =
+    '<td class="state before" data-label="State">'+state+'</td>'+
+    '<td class="before" data-label="Dedicated">'+(ded?'<span class="badge yes">Yes</span>':'<span class="badge no">National</span>')+'</td>'+
+    '<td class="agency before" data-label="Tool / Agency">'+agency+'</td>'+
+    '<td class="type-cell before" data-label="Type">'+type+'</td>'+
+    '<td class="before" data-label="REST">'+restBadge+'</td>'+
+    '<td class="links before" data-label="Link">'+links+'</td>';
+  body.appendChild(tr);
+});
+
+// Filtering
+const search=document.getElementById("search"),
+      fDed=document.getElementById("fDedicated"),
+      fRest=document.getElementById("fRest"),
+      count=document.getElementById("count"),
+      empty=document.getElementById("empty"),
+      rows=[...body.querySelectorAll("tr")];
+
+function apply(){
+  const q=search.value.trim().toLowerCase();
+  let shown=0;
+  rows.forEach(r=>{
+    let ok = (!q || r.dataset.search.includes(q))
+          && (!fDed.checked || r.dataset.ded==="1")
+          && (!fRest.checked || r.dataset.rest==="yes");
+    r.style.display = ok ? "" : "none";
+    if(ok) shown++;
+  });
+  count.textContent = shown+" of "+rows.length+" states";
+  empty.style.display = shown ? "none" : "block";
+}
+search.addEventListener("input",apply);
+fDed.addEventListener("change",apply);
+fRest.addEventListener("change",apply);
+apply();
+</script>
+</body>
+</html>
